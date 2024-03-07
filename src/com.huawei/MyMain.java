@@ -1,5 +1,6 @@
 package com.huawei;
 
+import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
 import operator.OperatorImpl;
 
 import java.util.Scanner;
@@ -17,5 +18,10 @@ public class MyMain {
         OperatorImpl operator = OperatorImpl.getInstance();
         operator.init(in);
         in.close();
+    }
+
+    public static void main(String[] args) {
+        MyMain main = new MyMain();
+        main.init();
     }
 }

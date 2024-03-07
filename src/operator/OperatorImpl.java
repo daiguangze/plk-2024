@@ -55,6 +55,11 @@ public class OperatorImpl implements Operator {
         System.out.flush();
     }
 
+    @Override
+    public void run() {
+        System.out.println("todo");
+    }
+
     private void getMap(Scanner in) {
         // 读取地图
         String[] mapTemp = new String[MAP_SIZE];

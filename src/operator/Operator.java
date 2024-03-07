@@ -12,4 +12,6 @@ public interface Operator {
 
     public void init(Scanner in);
 
+    public void run();
+
 }
