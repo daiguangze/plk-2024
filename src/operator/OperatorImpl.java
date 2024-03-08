@@ -41,6 +41,12 @@ public class OperatorImpl implements Operator {
     }
 
 
+    /**
+     * 初始化: 选手程序初始化时,将按序输入
+     * 1. 200 * 200 的字符组成的地图数据
+     * 2. 10行的泊位数据  ( 5个数据, 分别代表 (id,x,y,time,velocity) )
+     * 3. 1行的船的容积   ( 1个数据, 代表capacity)
+     */
     @Override
     public void init(Scanner in) {
         // 1.读取地图
