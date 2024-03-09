@@ -4,6 +4,8 @@
 
 package com.huawei;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -25,9 +27,11 @@ public class Main {
     private Robot[] robot = new Robot[robot_num + 10];
     private Berth[] berth = new Berth[berth_num + 10];
     private Boat[] boat = new Boat[10];
+    Scanner scanf;
+
 
     private void init() {
-        Scanner scanf = new Scanner(System.in);
+//        Scanner scanf = new Scanner(System.in);
         for(int i = 1; i <= n; i++) {
             ch[i] = scanf.nextLine();
         }
@@ -46,9 +50,10 @@ public class Main {
     }
 
     private int input() {
-        Scanner scanf = new Scanner(System.in);
+//        scanf = new Scanner(System.in);
         this.id = scanf.nextInt();
         this.money = scanf.nextInt();
+        System.out.println(this.id + " "+this.money);
         int num = scanf.nextInt();
         for (int i = 1; i <= num; i++) {
             int x = scanf.nextInt();
@@ -71,8 +76,9 @@ public class Main {
         return id;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         Main mainInstance = new Main();
+        mainInstance.scanf = new Scanner(new File("D:\\Projects\\huawei\\plk-2024\\test.txt"));
         mainInstance.init();
         for(int zhen = 1; zhen <= 15000; zhen ++) {
             int id = mainInstance.input();

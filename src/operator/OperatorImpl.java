@@ -16,7 +16,7 @@ public class OperatorImpl implements Operator {
     /**
      * 地图 固定 200 * 200
      */
-    char[][] map = new char[MAP_SIZE][MAP_SIZE];
+    char[][] map = new char[MAP_SIZE+10][MAP_SIZE+10];
 
     /**
      * 泊位 固定10个
@@ -97,7 +97,9 @@ public class OperatorImpl implements Operator {
         int frameId = stepRead();
         // 2. 操作
         stepOperate();
-        // 3. 清空缓存区
+        // 3. ok
+        System.out.println("OK");
+        // 4. 清空缓存区
         System.out.flush();
     }
 
@@ -108,6 +110,11 @@ public class OperatorImpl implements Operator {
         Instruction.right(2);
         Instruction.right(3);
         Instruction.right(4);
+        Instruction.right(5);
+        Instruction.right(6);
+        Instruction.right(7);
+        Instruction.right(8);
+        Instruction.right(9);
     }
 
 
@@ -122,6 +129,7 @@ public class OperatorImpl implements Operator {
         int frameId = in.nextInt();
         // 当前金钱
         int money = in.nextInt();
+        System.out.println(frameId + " "  + money);
         // 新增货物数量
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
@@ -144,6 +152,7 @@ public class OperatorImpl implements Operator {
             boat.status = in.nextInt();
             boat.pos = in.nextInt();
         }
+        String okk = in.nextLine();
 
         return frameId;
     }
@@ -164,5 +173,9 @@ public class OperatorImpl implements Operator {
 
     private void getBoatCapacity(){
         this.boatCapacity = in.nextInt();
+    }
+
+    public void setIn(Scanner in) {
+        this.in = in;
     }
 }

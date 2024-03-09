@@ -10,10 +10,17 @@ public class MyMain {
 
 
     public static void main(String[] args) {
-        System.out.println("start!!!!!!");
         Scanner in = new Scanner(System.in);
         OperatorImpl operator = new OperatorImpl(in);
+        Scanner in2 = new Scanner(System.in);
+        operator.setIn(in2);
         operator.init();
         operator.run();
+//        while(in.hasNextLine()){
+//            in.nextLine();
+//        }
     }
+
+
+
 }
