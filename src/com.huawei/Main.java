@@ -77,7 +77,8 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
         Main mainInstance = new Main();
-        mainInstance.scanf = new Scanner(new File("D:\\Projects\\huawei\\plk-2024\\test.txt"));
+//        mainInstance.scanf = new Scanner(new File("D:\\Projects\\huawei\\plk-2024\\test.txt"));
+        mainInstance.scanf = new Scanner(System.in);
         mainInstance.init();
         for(int zhen = 1; zhen <= 15000; zhen ++) {
             int id = mainInstance.input();

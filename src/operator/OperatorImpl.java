@@ -73,6 +73,7 @@ public class OperatorImpl implements Operator {
         for (int i = 0; i < BOAT_NUM; i++) {
             boats.add(new Boat());
         }
+        in.nextLine();
         String okk = in.nextLine();
         System.out.println("OK");
         System.out.flush();
@@ -152,6 +153,7 @@ public class OperatorImpl implements Operator {
             boat.status = in.nextInt();
             boat.pos = in.nextInt();
         }
+        in.nextLine();
         String okk = in.nextLine();
 
         return frameId;
