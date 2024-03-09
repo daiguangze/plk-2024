@@ -1,6 +1,5 @@
 package operator;
 
-import instruction.Instruction;
 import model.Berth;
 import model.Boat;
 import model.Good;
@@ -10,8 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class OperatorImpl implements Operator {
-
+public abstract class AbstractOperator implements Operator{
 
     /**
      * 地图 固定 200 * 200
@@ -28,8 +26,14 @@ public class OperatorImpl implements Operator {
      */
     List<Boat> boats = new ArrayList<>();
 
+    /**
+     * 货品
+     */
     List<Good> goods = new ArrayList<>();
 
+    /**
+     * 机器人
+     */
     List<Robot> robots = new ArrayList<>();
 
     /**
@@ -37,26 +41,13 @@ public class OperatorImpl implements Operator {
      */
     int boatCapacity;
 
+    /**
+     * 输入流
+     */
     Scanner in;
 
 
-    /**
-     * 单例
-     */
-
-    public OperatorImpl(Scanner in){
-        this.in = in ;
-    }
-
-
-
-    /**
-     * 初始化: 选手程序初始化时,将按序输入
-     * 1. 200 * 200 的字符组成的地图数据
-     * 2. 10行的泊位数据  ( 5个数据, 分别代表 (id,x,y,time,velocity) )
-     * 3. 1行的船的容积   ( 1个数据, 代表capacity)
-     */
-    public void init() {
+    private void init() {
         // 1.读取地图
         getMap();
         // 2.读取泊位
@@ -80,17 +71,13 @@ public class OperatorImpl implements Operator {
 
     @Override
     public void run() {
+        init();
         for (int i = 0; i < 15000; i++) {
             step();
         }
     }
 
-    /**
-     * 每一帧操作包括
-     *  1. 读取判题器信息
-     *  2. 给出机器人行动信息
-     */
-    public void step() {
+    private void step() {
         // 1. 读取
         // 第一行输入2个整数,表示帧序号, 当前金钱
         int frameId = stepRead();
@@ -102,20 +89,7 @@ public class OperatorImpl implements Operator {
         System.out.flush();
     }
 
-    private void stepOperate() {
-        // move 0:右 1:左 2:上 3:下
-        Instruction.right(0);
-        Instruction.right(1);
-        Instruction.right(2);
-        Instruction.right(3);
-        Instruction.right(4);
-        Instruction.right(5);
-        Instruction.right(6);
-        Instruction.right(7);
-        Instruction.right(8);
-        Instruction.right(9);
-    }
-
+    abstract void stepOperate();
 
     /**
      * 每一帧交互
@@ -174,5 +148,4 @@ public class OperatorImpl implements Operator {
     private void getBoatCapacity(){
         this.boatCapacity = in.nextInt();
     }
-
 }

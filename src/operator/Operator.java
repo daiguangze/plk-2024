@@ -11,12 +11,7 @@ public interface Operator {
 
     final int ROBOT_NUM = 10;
 
-
-    public void init();
-
     public void run();
-
-    public void step();
 
 
 }
