@@ -53,7 +53,6 @@ public class Main {
 //        scanf = new Scanner(System.in);
         this.id = scanf.nextInt();
         this.money = scanf.nextInt();
-        System.out.println(this.id + " "+this.money);
         int num = scanf.nextInt();
         for (int i = 1; i <= num; i++) {
             int x = scanf.nextInt();
