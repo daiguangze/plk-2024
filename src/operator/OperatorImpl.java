@@ -97,6 +97,8 @@ public class OperatorImpl implements Operator {
         int frameId = stepRead();
         // 2. 操作
         stepOperate();
+        // 3. 清空缓存区
+        System.out.flush();
     }
 
     private void stepOperate() {

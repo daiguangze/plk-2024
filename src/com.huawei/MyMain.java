@@ -10,8 +10,10 @@ public class MyMain {
 
 
     public static void main(String[] args) {
+        System.out.println("start!!!!!!");
         Scanner in = new Scanner(System.in);
         OperatorImpl operator = new OperatorImpl(in);
         operator.init();
+        operator.run();
     }
 }
