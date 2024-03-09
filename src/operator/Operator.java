@@ -9,9 +9,14 @@ public interface Operator {
 
     final int BOAT_NUM = 5;
 
+    final int ROBOT_NUM = 10;
 
-    public void init(Scanner in);
+
+    public void init();
 
     public void run();
+
+    public void step();
+
 
 }

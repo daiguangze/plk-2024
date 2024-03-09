@@ -1,8 +1,13 @@
 package operator;
 
+import instruction.Instruction;
 import model.Berth;
 import model.Boat;
+import model.Good;
+import model.Robot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class OperatorImpl implements Operator {
@@ -21,24 +26,28 @@ public class OperatorImpl implements Operator {
     /**
      * 船  固定 5 个
      */
-    Boat[] boats = new Boat[BOAT_NUM];
+    List<Boat> boats = new ArrayList<>();
+
+    List<Good> goods = new ArrayList<>();
+
+    List<Robot> robots = new ArrayList<>();
 
     /**
      * 船容量
      */
     int boatCapacity;
 
+    Scanner in;
+
 
     /**
      * 单例
      */
-    private static final OperatorImpl INSTANCE = new OperatorImpl();
 
-    private OperatorImpl(){}
-
-    public static OperatorImpl getInstance(){
-        return INSTANCE;
+    public OperatorImpl(Scanner in){
+        this.in = in ;
     }
+
 
 
     /**
@@ -48,14 +57,22 @@ public class OperatorImpl implements Operator {
      * 3. 1行的船的容积   ( 1个数据, 代表capacity)
      */
     @Override
-    public void init(Scanner in) {
+    public void init() {
         // 1.读取地图
-        getMap(in);
+        getMap();
         // 2.读取泊位
-        getBerths(in);
+        getBerths();
         // 3.读取船容量
-        getBoatCapacity(in);
+        getBoatCapacity();
         // 4. 读取结束
+        // 5. 先把机器人初始化了先
+        for(int i = 0 ; i < ROBOT_NUM ; i++){
+            robots.add(new Robot());
+        }
+        // 6. 先把船初始化了先
+        for (int i = 0; i < BOAT_NUM; i++) {
+            boats.add(new Boat());
+        }
         String okk = in.nextLine();
         System.out.println("OK");
         System.out.flush();
@@ -63,28 +80,87 @@ public class OperatorImpl implements Operator {
 
     @Override
     public void run() {
-        System.out.println("todo");
+        for (int i = 0; i < 15000; i++) {
+            step();
+        }
     }
 
-    private void getMap(Scanner in) {
+    /**
+     * 每一帧操作包括
+     *  1. 读取判题器信息
+     *  2. 给出机器人行动信息
+     */
+    @Override
+    public void step() {
+        // 1. 读取
+        // 第一行输入2个整数,表示帧序号, 当前金钱
+        int frameId = stepRead();
+        // 2. 操作
+        stepOperate();
+    }
+
+    private void stepOperate() {
+        // move 0:右 1:左 2:上 3:下
+        Instruction.right(0);
+        Instruction.right(1);
+        Instruction.right(2);
+        Instruction.right(3);
+        Instruction.right(4);
+    }
+
+
+    /**
+     * 每一帧交互
+     * 第一行输入两个整数, 表示帧序号 (从1开始递增)、 当前金钱数
+     * 第二行输入一个整数, 表示场上新增货物的数量 k [0,10]
+     * 紧接着K行数据,每一行表示一个新增货物, 分别由如下所示数据构成
+     */
+    private int stepRead(){
+        // 帧id
+        int frameId = in.nextInt();
+        // 当前金钱
+        int money = in.nextInt();
+        // 新增货物数量
+        int k = in.nextInt();
+        for (int i = 0; i < k; i++) {
+            Good good = new Good(in.nextInt(),in.nextInt(),in.nextInt());
+            goods.add(good);
+        }
+
+        // 接下来10行表示机器人 (是否携带货物, x , y , 状态 0:恢复状态, 1:正常运行)
+        for (int i = 0; i < ROBOT_NUM; i++) {
+            // 更新机器人数据
+            Robot robot = robots.get(i);
+            robot.goods = in.nextInt();
+            robot.x = in.nextInt();
+            robot.y = in.nextInt();
+            robot.status = in.nextInt();
+        }
+        // 接下来5行数据表示船
+        for (int i = 0; i < BOAT_NUM; i++) {
+            Boat boat = boats.get(i);
+            boat.status = in.nextInt();
+            boat.pos = in.nextInt();
+        }
+
+        return frameId;
+    }
+
+    private void getMap() {
         // 读取地图
-        String[] mapTemp = new String[MAP_SIZE];
         for (int i = 0; i < MAP_SIZE; i++) {
-            mapTemp[i] = in.nextLine();
-        }
-        // 转换为 char[][]
-        for (int i = 0; i < MAP_SIZE; i++) {
-            map[i] = mapTemp[i].toCharArray();
+            String row = in.nextLine();
+            map[i] = row.toCharArray();
         }
     }
 
-    private void getBerths(Scanner in) {
+    private void getBerths() {
         for(int i = 0; i < BERTH_NUM ;i++){
             berths[i] = new Berth(in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt());
         }
     }
 
-    private void getBoatCapacity(Scanner in){
+    private void getBoatCapacity(){
         this.boatCapacity = in.nextInt();
     }
 }
