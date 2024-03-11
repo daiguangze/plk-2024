@@ -7,7 +7,7 @@ public class AStar {
     /**
      * 绘制地图中,代表障碍的值
      */
-    public char bar;
+    public char notBar;
 
     /**
      * 绘制地图中,代表可走路径的值
@@ -76,6 +76,14 @@ public class AStar {
     }
 
     /**
+     * 判断坐标是否在close表中
+     */
+    private boolean isCoordInClose(Coord coord)
+    {
+        return coord!=null&&isCoordInClose(coord.x, coord.y);
+    }
+
+    /**
      * 计算预估损失
      */
     private int calEstimatedCost(Coord end, Coord coord){
@@ -85,7 +93,7 @@ public class AStar {
     /**
      * 在frontier中寻找下一个节点
      */
-    private Node findNodeInFrontier(Coord coord) {
+    private Node findNodeInOpen(Coord coord) {
         if (coord == null || openList.isEmpty()) return null;
         for(Node node : openList){
             if (node.coord.equals(coord)) return node;
@@ -110,11 +118,53 @@ public class AStar {
      * 添加一个节点到 frontier
      */
     private void addFrontierNode(MapInfo map,Node current,int x, int y , int oneStepCost){
-        if(canAddNodeToFrontier(map,x,y)){
-            Node end = map.end;
+        Node end = map.end;
+        // 个人认为直接判断加入到优先队列即可
+        if (canAddNodeToFrontier(map,x,y)){
             Coord coord = new Coord(x,y);
             int cost = current.cost + oneStepCost;
-            Node child = findNodeInFrontier(coord);
+            Node child = findNodeInOpen(coord);
+            // 若不在openlist中
+            if (child == null){
+                // 计算预估代价
+                int estimatedCost = calEstimatedCost(end.coord,coord);
+                if (isEndNode(end.coord,coord)){
+                    child = end;
+                    child.parent = current;
+                    child.cost = cost;
+                    child.estimatedCost = estimatedCost;
+                }else{
+                    child = new Node(coord,current,cost,estimatedCost);
+                }
+                openList.add(child);
+            }else if(child.cost > cost){
+                // ? 重新调整代价 感觉没必要啊
+                child.cost = cost;
+                child.parent = current;
+                openList.add(child);
+            }
+        }
+    }
+
+    public void start(MapInfo map){
+        if (map == null) return;
+        // clean
+        openList.clear();
+        closeList.clear();
+        // find
+        openList.add(map.start);
+        moveNodes(map);
+    }
+
+    private void moveNodes(MapInfo map) {
+        while(!openList.isEmpty()){
+            Node current = openList.poll();
+            closeList.add(current);
+            addFrontierNode(map,current);
+            if (isCoordInClose(map.end.coord)){
+                // 绘制地图
+                break;
+            }
         }
     }
 
