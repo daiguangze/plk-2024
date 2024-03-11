@@ -1,7 +1,5 @@
 package util.astar;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-
 import java.util.*;
 
 public class AStar {
@@ -29,7 +27,7 @@ public class AStar {
     /**
      * 边界节点
      */
-    Queue<Node> frontier = new PriorityQueue<>();
+    Queue<Node> openList = new PriorityQueue<>();
 
     /**
      * 保存节点
@@ -88,8 +86,8 @@ public class AStar {
      * 在frontier中寻找下一个节点
      */
     private Node findNodeInFrontier(Coord coord) {
-        if (coord == null || frontier.isEmpty()) return null;
-        for(Node node : frontier){
+        if (coord == null || openList.isEmpty()) return null;
+        for(Node node : openList){
             if (node.coord.equals(coord)) return node;
         }
         return null;
