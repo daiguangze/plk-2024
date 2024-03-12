@@ -52,6 +52,7 @@ public abstract class AbstractOperator implements Operator{
         getMap();
         // 2.读取泊位
         getBerths();
+        getBerthsAfter();
         // 3.读取船容量
         getBoatCapacity();
         // 4. 读取结束
@@ -69,9 +70,9 @@ public abstract class AbstractOperator implements Operator{
         System.out.flush();
     }
 
+    abstract void getBerthsAfter();
     @Override
     public void run() {
-        initBefore();
         init();
         runBefore();
         for (int i = 0; i < 15000; i++) {
@@ -80,7 +81,6 @@ public abstract class AbstractOperator implements Operator{
     }
 
     abstract void runBefore();
-    abstract void initBefore();
 
     private void step() {
         // 1. 读取

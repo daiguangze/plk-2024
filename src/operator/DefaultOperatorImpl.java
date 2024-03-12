@@ -20,6 +20,11 @@ public class DefaultOperatorImpl extends AbstractOperator{
     }
 
     @Override
+    void getBerthsAfter() {
+        //瀑布算法
+    }
+
+    @Override
     void runBefore() {
         /**
          * 另起一个线程, 进行计算操作 .
@@ -53,10 +58,7 @@ public class DefaultOperatorImpl extends AbstractOperator{
         thread.start();
     }
 
-    @Override
-    void initBefore() {
-        // 使用瀑布算法 计算每个泊位 TODO
-    }
+
 
     @Override
     void stepOperate() {
