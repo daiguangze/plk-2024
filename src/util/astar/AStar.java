@@ -1,5 +1,7 @@
 package util.astar;
 
+import instruction.Instruction;
+
 import java.util.*;
 
 public class AStar {
@@ -36,6 +38,18 @@ public class AStar {
 
 
     /**
+     * 指令命令
+     */
+    public Stack<String> instructions = new Stack<>();
+
+    int robotId = 0;
+
+
+    public AStar(char notBar) {
+        this.notBar = notBar;
+    }
+
+    /**
      * 判断节点是否为最终节点
      *
      * @param end   最终节点
@@ -58,7 +72,7 @@ public class AStar {
         // 是否在地图中
         if (x < 0 || x >= map.width || y < 0 || y >= map.hight) return false;
         // 是否是不可通过的节点
-        if (map.maps[x][y] != path) return false;
+        if (map.maps[x][y] != notBar) return false;
         // 是否在close表
         if (isCoordInClose(x, y)) return false;
         return true;
@@ -151,6 +165,7 @@ public class AStar {
         // clean
         openList.clear();
         closeList.clear();
+        instructions.clear();
         // find
         openList.add(map.start);
         moveNodes(map);
@@ -163,8 +178,40 @@ public class AStar {
             addFrontierNode(map,current);
             if (isCoordInClose(map.end.coord)){
                 // 绘制地图
+                generateInstruction(map.end);
                 break;
             }
+        }
+    }
+
+    /**
+     * 生成移动指令
+     * 因为华为x轴向下为正  y 轴向右为正
+     * @param end
+     */
+    private void generateInstruction(Node end){
+        Node p = end;
+        while(p.parent != null){
+            Node parent = p.parent;
+            // parent -> p
+            if(parent.coord.y != p.coord.y){
+                if (parent.coord.y > p.coord.y){
+                    //左移
+                    instructions.push(Instruction.leftString(robotId));
+                }else{
+                    //右移
+                    instructions.push(Instruction.rightString(robotId));
+                }
+            }else if(parent.coord.x != p.coord.x){
+                if (parent.coord.x > p.coord.x){
+                    // 上移
+                    instructions.push(Instruction.upString(robotId));
+                }else {
+                    // 下移
+                    instructions.push(Instruction.downString(robotId));
+                }
+            }
+            p = p.parent;
         }
     }
 

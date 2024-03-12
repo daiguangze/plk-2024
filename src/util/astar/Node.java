@@ -1,6 +1,6 @@
 package util.astar;
 
-class Node implements Comparable<Node> {
+public class Node implements Comparable<Node> {
 
     /**
      * 坐标

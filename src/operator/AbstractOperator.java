@@ -71,11 +71,16 @@ public abstract class AbstractOperator implements Operator{
 
     @Override
     public void run() {
+        initBefore();
         init();
+        runBefore();
         for (int i = 0; i < 15000; i++) {
             step();
         }
     }
+
+    abstract void runBefore();
+    abstract void initBefore();
 
     private void step() {
         // 1. 读取
