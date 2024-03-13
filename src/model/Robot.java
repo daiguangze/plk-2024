@@ -1,6 +1,7 @@
 package model;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 public class Robot {
@@ -27,4 +28,14 @@ public class Robot {
      */
     public Queue<String> instructions = new ArrayDeque<>();
 
+
+    /**
+     *  通过欧式距离找出,距离该机器人最近的节点
+     * @param goods
+     * @return
+     */
+    private Good findGood(List<Good> goods){
+        //TODO
+        return null;
+    }
 }
