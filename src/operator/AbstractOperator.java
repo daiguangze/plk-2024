@@ -47,30 +47,16 @@ public abstract class AbstractOperator implements Operator{
     Scanner in;
 
 
-    private void init() {
-        // 1.读取地图
-        getMap();
-        // 2.读取泊位
-        getBerths();
-        getBerthsAfter();
-        // 3.读取船容量
-        getBoatCapacity();
-        // 4. 读取结束
-        // 5. 先把机器人初始化了先
-        for(int i = 0 ; i < ROBOT_NUM ; i++){
-            robots.add(new Robot());
-        }
-        // 6. 先把船初始化了先
-        for (int i = 0; i < BOAT_NUM; i++) {
-            boats.add(new Boat());
-        }
-        in.nextLine();
-        String okk = in.nextLine();
-        System.out.println("OK");
-        System.out.flush();
-    }
 
     abstract void getBerthsAfter();
+
+    abstract void runBefore();
+
+
+
+    abstract void stepOperate();
+
+
     @Override
     public void run() {
         init();
@@ -79,8 +65,6 @@ public abstract class AbstractOperator implements Operator{
             step();
         }
     }
-
-    abstract void runBefore();
 
     private void step() {
         // 1. 读取
@@ -94,7 +78,6 @@ public abstract class AbstractOperator implements Operator{
         System.out.flush();
     }
 
-    abstract void stepOperate();
 
     /**
      * 每一帧交互
@@ -134,6 +117,31 @@ public abstract class AbstractOperator implements Operator{
         String okk = in.nextLine();
 
         return frameId;
+    }
+
+
+
+    private void init() {
+        // 1.读取地图
+        getMap();
+        // 2.读取泊位
+        getBerths();
+        getBerthsAfter();
+        // 3.读取船容量
+        getBoatCapacity();
+        // 4. 读取结束
+        // 5. 先把机器人初始化了先
+        for(int i = 0 ; i < ROBOT_NUM ; i++){
+            robots.add(new Robot());
+        }
+        // 6. 先把船初始化了先
+        for (int i = 0; i < BOAT_NUM; i++) {
+            boats.add(new Boat());
+        }
+        in.nextLine();
+        String okk = in.nextLine();
+        System.out.println("OK");
+        System.out.flush();
     }
 
     private void getMap() {
