@@ -1,6 +1,14 @@
 #include <iostream>
 
+
+void Init(){
+    GetMap();
+}
+
+void GetMap();
+
+
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Init();
     return 0;
 }
