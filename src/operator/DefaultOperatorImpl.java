@@ -19,11 +19,18 @@ public class DefaultOperatorImpl extends AbstractOperator{
         this.in = in;
     }
 
+    /**
+     * 埋点 : 获取泊位结束后
+     */
     @Override
     void getBerthsAfter() {
         //瀑布算法
     }
 
+
+    /**
+     * 埋点 : 进行 15000次循环前
+     */
     @Override
     void runBefore() {
         /**
@@ -59,7 +66,9 @@ public class DefaultOperatorImpl extends AbstractOperator{
     }
 
 
-
+    /**
+     * 每帧与判题器的交互操作
+     */
     @Override
     void stepOperate() {
 //        for(Robot robot : robots){
