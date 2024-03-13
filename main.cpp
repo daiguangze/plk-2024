@@ -1,14 +1,8 @@
 #include <iostream>
-
-
-void Init(){
-    GetMap();
-}
-
-void GetMap();
+#include "Data/PortMap.h"
 
 
 int main() {
-    Init();
+    PortMap::Init();
     return 0;
 }
