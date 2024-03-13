@@ -2,7 +2,6 @@ package com.huawei;
 
 import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
 import operator.DefaultOperatorImpl;
-import operator.OperatorImpl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
