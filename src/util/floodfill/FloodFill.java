@@ -22,12 +22,13 @@ public class FloodFill {
             String row = in.nextLine();
             maps[i] = row.toCharArray();
         }
-
         for(int i = 0; i < 10 ;i++){
             berths.add(new Berth(in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt()));
         }
-
         ans = getPointMessage(maps,berths);
+        MapNode node = new MapNode(4, 1);
+        PointMessage aaa = ans.getOrDefault(node, null);
+        System.out.println(aaa.berthId + " "  + aaa.actionCode);
     }
 
     public static Map<MapNode,PointMessage> getPointMessage(char[][] maps , List<Berth> berths) {
@@ -152,12 +153,12 @@ class PointMessage{
     /**
      * 所属泊位id
      */
-    int berthId;
+    public int berthId;
 
     /**
      * 下一步行动指令 0123 上右下左
      */
-    int actionCode;
+    public int actionCode;
 
     public PointMessage(int berthId, int actionCode) {
         this.berthId = berthId;
