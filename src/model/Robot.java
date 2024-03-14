@@ -15,9 +15,18 @@ public class Robot {
     public int goods;
 
     /**
-     * 正常  与 恢复中
+     * 0:回复 -- 1:正常运行状态( 0 1 为判题器 给出的状态 以下为新增状态 来扩展正常运行状态)
      */
     public int status;
+
+    /**
+     * 扩展状态
+     * 1: 空闲
+     * 2: 取货中. (此状态时, 内涵
+     * 3: 取货成功, 前往泊位状态
+     * 4:
+     */
+    public int state;
 
     public int mbx;
 

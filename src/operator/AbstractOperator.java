@@ -54,7 +54,7 @@ public abstract class AbstractOperator implements Operator{
 
 
 
-    abstract void stepOperate();
+    abstract void stepOperate() throws InterruptedException;
 
 
     @Override
@@ -62,11 +62,15 @@ public abstract class AbstractOperator implements Operator{
         init();
         runBefore();
         for (int i = 0; i < 15000; i++) {
-            step();
+            try {
+                step();
+            }catch (Exception e){
+
+            }
         }
     }
 
-    private void step() {
+    private void step() throws InterruptedException {
         // 1. 读取
         // 第一行输入2个整数,表示帧序号, 当前金钱
         int frameId = stepRead();
