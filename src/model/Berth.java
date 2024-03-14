@@ -5,6 +5,10 @@ public class Berth {
     public int x;
     public int y;
     public int transport_time;
+
+    /**
+     * 每帧可以装载的物品数
+     */
     public int loading_speed;
 
     public Berth() {

@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Queue;
 
 public class Robot {
+
     public int x;
 
     public int y;
 
     /**
-     * 是否持有货物
+     * 是否持有货物 0未携带 1携带
      */
     public int goods;
 
@@ -35,7 +36,22 @@ public class Robot {
      * @return
      */
     private Good findGood(List<Good> goods){
-        //TODO
-        return null;
+
+        Good res = null;
+        double minDistance = Double.MAX_VALUE;
+        for (Good good : goods) {
+            double euDistance = Math.sqrt((double) ((good.x - this.x) * (good.x - this.x) + (good.y - this.y) * (good.y - this.y)));
+            // 暂时优先距离考虑 不考虑价值
+            if (euDistance < minDistance) {
+                res = good;
+                minDistance = euDistance;
+            } else if (euDistance == minDistance) {
+                // 距离相等，取价格大的
+                if (good.price > res.price) {
+                    res = good;
+                }
+            }
+        }
+        return res;
     }
 }
