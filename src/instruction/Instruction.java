@@ -21,6 +21,13 @@ public class Instruction {
     public static void getGood(int robotId) {
         System.out.println(String.format("get %d", robotId));
     }
+    public static void pullGood(int robotId) {
+        System.out.println(String.format("pull %d", robotId));
+    }
+
+    public static String pullGoodString(int robotId) {
+        return String.format("pull %d", robotId);
+    }
 
     public static String upString(int robotId){
         return String.format("move %d 2", robotId);

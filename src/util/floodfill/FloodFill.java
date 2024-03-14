@@ -114,7 +114,9 @@ public class FloodFill {
         if (x < 0 || x >= maps.length ) return false;
         if (y < 0 || y >= maps.length ) return false;
         if (visited[x][y] != -1) return false;
-        if (maps[x][y] != '.') return false;
+        if (maps[x][y] != '.'){
+            if (maps[x][y] != 'A') return false;
+        }
         return true;
     }
     private static boolean isEnd(ArrayDeque<MapNode>[] queues) {
@@ -128,40 +130,4 @@ public class FloodFill {
 }
 
 
-class MapNode {
-    public int x;
-    public int y;
 
-    public MapNode(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        MapNode node = (MapNode) obj;
-        return node.x == this.x && node.y == this.y;
-    }
-
-    @Override
-    public int hashCode() {
-        return x+y;
-    }
-}
-
-class PointMessage{
-    /**
-     * 所属泊位id
-     */
-    public int berthId;
-
-    /**
-     * 下一步行动指令 0123 上右下左
-     */
-    public int actionCode;
-
-    public PointMessage(int berthId, int actionCode) {
-        this.berthId = berthId;
-        this.actionCode = actionCode;
-    }
-}
