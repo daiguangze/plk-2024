@@ -3,23 +3,16 @@ package operator;
 import instruction.Instruction;
 import model.Good;
 import model.Robot;
-import netscape.security.UserTarget;
-import strategy.decision.IDecision;
 import util.astar.AStar;
-import util.astar.Coord;
 import util.astar.MapInfo;
 import util.astar.Node;
 import util.floodfill.FloodFill;
 import util.floodfill.MapNode;
 import util.floodfill.PointMessage;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class DefaultOperatorImpl extends AbstractOperator{
-
-    IDecision decision;
 
     Map<MapNode, PointMessage> mapMessage;
 
