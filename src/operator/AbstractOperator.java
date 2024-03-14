@@ -68,6 +68,7 @@ public abstract class AbstractOperator implements Operator{
 
     private void step() {
         // 1. 读取
+
         // 第一行输入2个整数,表示帧序号, 当前金钱
         int frameId = stepRead();
         // 2. 操作
