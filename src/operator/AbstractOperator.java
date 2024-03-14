@@ -19,7 +19,7 @@ public abstract class AbstractOperator implements Operator{
     /**
      * 泊位 固定10个
      */
-    Berth[] berths = new Berth[BERTH_NUM];
+    List<Berth> berths = new ArrayList<>();
 
     /**
      * 船  固定 5 个
@@ -154,7 +154,7 @@ public abstract class AbstractOperator implements Operator{
 
     private void getBerths() {
         for(int i = 0; i < BERTH_NUM ;i++){
-            berths[i] = new Berth(in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt());
+            berths.add(new Berth(in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt()));
         }
     }
 
