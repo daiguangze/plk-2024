@@ -1,11 +1,11 @@
 package model;
 
 public class Berth {
-    int id;
-    int x;
-    int y;
-    int transport_time;
-    int loading_speed;
+    public int id;
+    public int x;
+    public int y;
+    public int transport_time;
+    public int loading_speed;
 
     public Berth() {
     }
