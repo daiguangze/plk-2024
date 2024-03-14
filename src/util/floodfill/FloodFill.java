@@ -114,7 +114,9 @@ public class FloodFill {
         if (x < 0 || x >= maps.length ) return false;
         if (y < 0 || y >= maps.length ) return false;
         if (visited[x][y] != -1) return false;
-        if (maps[x][y] != '.') return false;
+        if (maps[x][y] != '.'){
+            if (maps[x][y] != 'A') return false;
+        }
         return true;
     }
     private static boolean isEnd(ArrayDeque<MapNode>[] queues) {

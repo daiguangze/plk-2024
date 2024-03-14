@@ -26,7 +26,7 @@ public class Robot {
      * 3: 取货成功, 前往泊位状态
      * 4:
      */
-    public int state;
+    public volatile int state;
 
     public int mbx;
 

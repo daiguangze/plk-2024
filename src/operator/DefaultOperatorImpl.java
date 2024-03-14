@@ -60,19 +60,15 @@ public class DefaultOperatorImpl extends AbstractOperator{
                                 Node goodNode = new Node(good.x,good.y);
 //                                Node goodNode = new Node(73,49);
                                 aStar.start(new MapInfo(map,map.length,map.length,robotNode,goodNode));
-                                robot.instructions.add(Instruction.getGoodString(0));
                                 while(!aStar.instructions.isEmpty()) {
                                     robot.instructions.add(aStar.instructions.pop());
                                 }
+                                robot.instructions.add(Instruction.getGoodString(0));
                                 robot.state = 2;
                             }
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    try {
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -96,7 +92,7 @@ public class DefaultOperatorImpl extends AbstractOperator{
 //        for(Robot robot : robots){
 //            if (!robot.instructions.isEmpty()) System.out.println(robot.instructions.poll());
 //        }
-//        Thread.sleep(10);
+        Thread.sleep(10);
 
         // >= 1 为正常运行状态
         Robot robot = robots.get(0);
@@ -109,7 +105,7 @@ public class DefaultOperatorImpl extends AbstractOperator{
             }else if (robot.state == 2 && robot.instructions.isEmpty()){
                 // 变更为前往泊位状态
                 robot.state = 3;
-            }else if(robot.state == 99){
+            }else if(robot.state == 3){
                 // 取出当前节点的路径信息
                 PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                 if (message == null ){
@@ -118,16 +114,16 @@ public class DefaultOperatorImpl extends AbstractOperator{
                     robot.state = 1;
                 }else {
                     switch (message.actionCode){
-                        case 0:
+                        case 1:
                             Instruction.up(0);
                             break;
-                        case 1:
+                        case 2:
                             Instruction.right(0);
                             break;
-                        case 2:
+                        case 3:
                             Instruction.down(0);
                             break;
-                        case 3:
+                        case 4:
                             Instruction.left(0);
                             break;
                     }
@@ -138,6 +134,6 @@ public class DefaultOperatorImpl extends AbstractOperator{
             robot.instructions.clear();
             robot.state = 1;
         }
-        if (!robots.get(0).instructions.isEmpty()) System.out.println(robots.get(0).instructions.poll());
+//        if (!robots.get(0).instructions.isEmpty()) System.out.println(robots.get(0).instructions.poll());
     }
 }
