@@ -79,6 +79,11 @@ public class DefaultOperatorImpl extends AbstractOperator{
             }
         });
         thread.start();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -94,45 +99,45 @@ public class DefaultOperatorImpl extends AbstractOperator{
 //        Thread.sleep(10);
 
         // >= 1 为正常运行状态
-//        Robot robot = robots.get(0);
-//        if (robot.state >= 1){
-//            if (robot.state == 1){
-//                // 空闲状态 等待指令状态中
-//            }else if (robot.state == 2 && !robot.instructions.isEmpty()) {
-//                // 取货中 取出自己的指令
-//                System.out.println(robot.instructions.poll());
-//            }else if (robot.state == 2 && robot.instructions.isEmpty()){
-//                // 变更为前往泊位状态
-//                robot.state = 3;
-//            }else if(robot.state == 3){
-//                // 取出当前节点的路径信息
-//                PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
-//                if (message == null ){
-//                    // 到达泊位
-//                    Instruction.pullGood(0);
-//                    robot.state = 1;
-//                }else {
-//                    switch (message.actionCode){
-//                        case 0:
-//                            Instruction.up(0);
-//                            break;
-//                        case 1:
-//                            Instruction.right(0);
-//                            break;
-//                        case 2:
-//                            Instruction.down(0);
-//                            break;
-//                        case 3:
-//                            Instruction.left(0);
-//                            break;
-//                    }
-//                }
-//            }
-//        }else{
-//            // 异常状态 清空所有状态信息重新计算
-//            robot.instructions.clear();
-//            robot.state = 1;
-//        }
-//        if (!robots.get(0).instructions.isEmpty()) System.out.println(robots.get(0).instructions.poll());
+        Robot robot = robots.get(0);
+        if (robot.state >= 1){
+            if (robot.state == 1){
+                // 空闲状态 等待指令状态中
+            }else if (robot.state == 2 && !robot.instructions.isEmpty()) {
+                // 取货中 取出自己的指令
+                System.out.println(robot.instructions.poll());
+            }else if (robot.state == 2 && robot.instructions.isEmpty()){
+                // 变更为前往泊位状态
+                robot.state = 3;
+            }else if(robot.state == 99){
+                // 取出当前节点的路径信息
+                PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                if (message == null ){
+                    // 到达泊位
+                    Instruction.pullGood(0);
+                    robot.state = 1;
+                }else {
+                    switch (message.actionCode){
+                        case 0:
+                            Instruction.up(0);
+                            break;
+                        case 1:
+                            Instruction.right(0);
+                            break;
+                        case 2:
+                            Instruction.down(0);
+                            break;
+                        case 3:
+                            Instruction.left(0);
+                            break;
+                    }
+                }
+            }
+        }else{
+            // 异常状态 清空所有状态信息重新计算
+            robot.instructions.clear();
+            robot.state = 1;
+        }
+        if (!robots.get(0).instructions.isEmpty()) System.out.println(robots.get(0).instructions.poll());
     }
 }
