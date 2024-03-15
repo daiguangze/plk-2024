@@ -2,6 +2,7 @@ package com.huawei;
 
 import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
 import operator.DefaultOperatorImpl;
+import operator.FinalOperator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,8 +13,8 @@ public class MyMain {
 
 
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner in = new Scanner(System.in);
-//        Scanner in = new Scanner(new File(TestMain.class.getResource("/").toString().substring(6) + "\\log.txt"));
+//        Scanner in = new Scanner(System.in);
+        Scanner in = new Scanner(new File(TestMain.class.getResource("/").toString().substring(6) + "\\log.txt"));
 //        OperatorImpl operator = new OperatorImpl(in);
 //        operator.init();
 //        operator.run();
@@ -21,7 +22,7 @@ public class MyMain {
 //            in.nextLine();
 //        }
 
-        DefaultOperatorImpl operator = new DefaultOperatorImpl(in);
+        FinalOperator operator = new FinalOperator(in);
         operator.run();
 
     }

@@ -45,8 +45,9 @@ public class AStar {
     int robotId = 0;
 
 
-    public AStar(char notBar) {
+    public AStar(char notBar,int robotId) {
         this.notBar = notBar;
+        this.robotId = robotId;
     }
 
     /**
@@ -216,4 +217,7 @@ public class AStar {
     }
 
 
+    public void setRobotId(int robotId) {
+        this.robotId = robotId;
+    }
 }
