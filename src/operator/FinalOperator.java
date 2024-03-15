@@ -270,6 +270,7 @@ public class FinalOperator implements Operator{
             if (message != null){
                 good.frameId = this.currentFrameId;
                 ArrayList<Good> goodList = disGoodList.get(message.berthId);
+                //TODO 这个add没成功
                 goodList.add(good);
                 System.out.println("--");
             }
