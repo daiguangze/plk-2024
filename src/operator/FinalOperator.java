@@ -17,8 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FinalOperator implements Operator{
+
+    ReentrantLock[] locks = new ReentrantLock[10];
 
     /**
      * 地图 固定 200 * 200
@@ -43,8 +47,7 @@ public class FinalOperator implements Operator{
     /**
      * 货物
      */
-    List<ArrayList<Good>> disGoodList = new ArrayList<>();
-
+    List<CopyOnWriteArrayList<Good>> disGoodList = new CopyOnWriteArrayList<>();
     /**
      * 机器人
      */
@@ -72,8 +75,12 @@ public class FinalOperator implements Operator{
     public FinalOperator(Scanner in) {
         this.in = in;
         for(int i = 0 ; i < BERTH_NUM ; i++){
-            disGoodList.add(new ArrayList<Good>());
+            disGoodList.add(new CopyOnWriteArrayList<Good>());
         }
+        for(int i = 0 ; i < ROBOT_NUM ; i++){
+            locks[i] = new ReentrantLock();
+        }
+
     }
 
     private void interactBefore() {
@@ -88,6 +95,7 @@ public class FinalOperator implements Operator{
                 while (true) {
                     try {
                         for (int i = 0; i < ROBOT_NUM; i++) {
+                            locks[i].lock();
                             List<Good> goodList = disGoodList.get(i);
                             if (!goodList.isEmpty()) {
                                 aStar.setRobotId(i);
@@ -108,15 +116,17 @@ public class FinalOperator implements Operator{
                                     Node robotNode = new Node(robot.x, robot.y);
                                     Node goodNode = new Node(good.x, good.y);
 //                                Node goodNode = new Node(73,49);
+                                    // A*计算路径
                                     aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
+                                    // 将A* 里面的指令copy到机器人指令队列
                                     while (!aStar.instructions.isEmpty()) {
                                         robot.instructions.add(aStar.instructions.pop());
                                     }
-                                    robot.instructions.add(Instruction.getGoodString(0));
+                                    robot.instructions.add(Instruction.getGoodString(i));
                                     robot.state = 2;
                                 }
                             }
-
+                            locks[i].unlock();
                         }
                     } catch (Exception e) {
                         throw e;
@@ -125,25 +135,27 @@ public class FinalOperator implements Operator{
             }
         });
         thread.start();
-//        try {
-//            // 初始化时间没用完  睡一会让A*计算
-//            Thread.sleep(2000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            // 初始化时间没用完  睡一会让A*计算
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
 
     /**
-     * 每帧与判题器的交互操作
+     * 每帧与判题器的交互操作  1- 15000
      */
     void operate() throws InterruptedException {
 
-        Thread.sleep(100);
+        Thread.sleep(10);
+        // 1. 机器人指令处理
         for(int i = 0 ; i <ROBOT_NUM ; i++){
+            locks[i].lock();
             Robot robot = robots.get(i);
-            if (robot.state >= 1){
+            if (robot.state >= 1 && robot.status == 1){
                 if (robot.state == 1){
                     // 空闲状态 等待指令状态中
                 }else if (robot.state == 2 && !robot.instructions.isEmpty()) {
@@ -157,21 +169,21 @@ public class FinalOperator implements Operator{
                     PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                     if (message == null ){
                         // 到达泊位
-                        Instruction.pullGood(1);
+                        Instruction.pullGood(i);
                         robot.state = 1;
                     }else {
                         switch (message.actionCode){
                             case 1:
-                                Instruction.up(1);
+                                Instruction.up(i);
                                 break;
                             case 2:
-                                Instruction.right(1);
+                                Instruction.right(i);
                                 break;
                             case 3:
-                                Instruction.down(1);
+                                Instruction.down(i);
                                 break;
                             case 4:
-                                Instruction.left(1);
+                                Instruction.left(i);
                                 break;
                         }
                     }
@@ -181,7 +193,11 @@ public class FinalOperator implements Operator{
                 robot.instructions.clear();
                 robot.state = 1;
             }
+
+            locks[i].unlock();
         }
+
+        // 2. 船指令
 
 
 
@@ -196,6 +212,9 @@ public class FinalOperator implements Operator{
     public void run() {
         init();
         interactBefore();
+        String okk = in.nextLine();
+        System.out.println("OK");
+        System.out.flush();
         for (int i = 0; i < 15000; i++) {
             try {
                 step();
@@ -240,9 +259,7 @@ public class FinalOperator implements Operator{
             boats.add(new Boat());
         }
         in.nextLine();
-        String okk = in.nextLine();
-        System.out.println("OK");
-        System.out.flush();
+
     }
 
     private void initMapMessage() {
@@ -269,7 +286,7 @@ public class FinalOperator implements Operator{
             PointMessage message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
             if (message != null){
                 good.frameId = this.currentFrameId;
-                ArrayList<Good> goodListz = disGoodList.get(message.berthId);
+                CopyOnWriteArrayList<Good> goodListz = disGoodList.get(message.berthId);
                 goodListz.add(good);
             }
 //            goods.add(good);
