@@ -23,6 +23,12 @@ public class Good {
      */
     public int state;
 
+    /**
+     * 生成时的帧id
+     */
+    public int frameId;
+
+
     public Good(int x, int y, int price) {
         this.x = x;
         this.y = y;

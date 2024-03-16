@@ -2,6 +2,7 @@ package com.huawei;
 
 import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
 import operator.DefaultOperatorImpl;
+import operator.FinalOperator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +22,7 @@ public class MyMain {
 //            in.nextLine();
 //        }
 
-        DefaultOperatorImpl operator = new DefaultOperatorImpl(in);
+        FinalOperator operator = new FinalOperator(in);
         operator.run();
 
     }

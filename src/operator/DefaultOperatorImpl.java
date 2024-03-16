@@ -42,7 +42,7 @@ public class DefaultOperatorImpl extends AbstractOperator{
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                AStar aStar = new AStar('.');
+                AStar aStar = new AStar('.',0);
                 while (true){
                     try {
                         if (!goods.isEmpty()){
