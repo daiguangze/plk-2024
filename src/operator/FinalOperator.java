@@ -97,7 +97,7 @@ public class FinalOperator implements Operator{
                                 while (!goodList.isEmpty() && good == null) {
                                     Good goodTemp = goodList.remove(0);
                                     // 货物1000帧消失 预留200帧机器人行走时间
-                                    if (goodTemp.frameId + 1000 - 200 < currentFrameId) {
+                                    if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
                                         good = goodTemp;
                                     }
                                 }
@@ -269,10 +269,8 @@ public class FinalOperator implements Operator{
             PointMessage message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
             if (message != null){
                 good.frameId = this.currentFrameId;
-                ArrayList<Good> goodList = disGoodList.get(message.berthId);
-                //TODO 这个add没成功
-                goodList.add(good);
-                System.out.println("--");
+                ArrayList<Good> goodListz = disGoodList.get(message.berthId);
+                goodListz.add(good);
             }
 //            goods.add(good);
         }
