@@ -7,14 +7,30 @@ public class Boat {
     public int id;
 
     /**
-     * 目标泊位, 虚拟则为-1
+     * 目标泊位, 虚拟则为-1 实时更新
      */
     public int pos;
 
     /**
-     * 状态 (0:表示移动中,1:正常运行,2:泊位外等待
+     * 状态 (0:表示移动中,1:正常运行,2:泊位外等待 实时更新
      */
     public int status;
+
+    /**
+     * 扩展状态
+     */
+    public int state;
+
+    /**
+     * 容量
+     */
+    public int capacity;
+
+    /**
+     * 停留帧
+     */
+    public int styleFrame;
+
 
 
 }

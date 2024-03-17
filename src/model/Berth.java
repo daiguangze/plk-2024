@@ -4,6 +4,10 @@ public class Berth {
     public int id;
     public int x;
     public int y;
+
+    /**
+     * 轮船到虚拟点的时间
+     */
     public int transport_time;
 
     /**

@@ -68,8 +68,18 @@ public class FinalOperator implements Operator {
      */
     volatile int currentFrameId = 0;
 
-
+    /**
+     * 地图信息
+     */
     Map<MapNode, PointMessage> mapMessage;
+
+    /**
+     * 泊位工作状态
+     * key : 泊位id
+     * value:工作的轮船id
+     */
+    int[] berth2Boat = new int[BERTH_NUM];
+    int[] boat2Berth = new int[BOAT_NUM];
 
 
     public FinalOperator(Scanner in) {
@@ -79,6 +89,12 @@ public class FinalOperator implements Operator {
         }
         for (int i = 0; i < ROBOT_NUM; i++) {
             locks[i] = new ReentrantLock();
+        }
+        for (int i = 0; i < BOAT_NUM; i++) {
+            boat2Berth[i] = -1;
+        }
+        for (int i = 0; i < BERTH_NUM; i++) {
+            berth2Boat[i] = -1;
         }
 
     }
@@ -168,8 +184,8 @@ public class FinalOperator implements Operator {
                     // 取出当前节点的路径信息
                     PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                     if (message == null) {
-                        // 到达泊位
-                        Instruction.pullGood(i);
+                        // 到达泊位 变更为空闲状态
+//                        Instruction.pullGood(i);
                         robot.state = 1;
                     } else {
                         switch (message.actionCode) {
@@ -185,6 +201,11 @@ public class FinalOperator implements Operator {
                             case 4:
                                 Instruction.left(i);
                                 break;
+                            case 5:
+                                Instruction.pullGood(i);
+                                berths.get(i).goodNums++;
+                                robot.state = 1;
+                                break;
                         }
                     }
                 }
@@ -198,9 +219,61 @@ public class FinalOperator implements Operator {
         }
 
         // 2. 船指令
+        // 找个没人的泊位
+        for (int i = 0; i < boats.size(); i++) {
+            Boat boat = boats.get(i);
 
+
+            // TODO 自定义状态
+            switch (boat.status) {
+                case 2:
+                    // 正常运行
+
+                    int x = boat2Berth[i];
+                    if ( x != -1){
+                        boat.styleFrame++;
+                        if (boat.styleFrame > berths.get(x).goodNums / berths.get(x).loading_speed + 2){
+                            berths.get(x).goodNums = 0;
+                            Instruction.go(i);
+                        }
+                    }
+                    break;
+                case 1:
+                    // 2 泊位外等待
+                    int target = -1;
+                    int max = 0;
+                    for (int j = 0; j < BERTH_NUM; j++) {
+                        Berth berth = berths.get(j);
+                        Integer condition = berth2Boat[j];
+                        // 该泊位此时无船处理
+                        if (condition == -1) {
+                            if (berth.goodNums > max) {
+                                max = berth.goodNums;
+                                target = berth.id;
+                            }
+                        }
+                    }
+                    if (target >= 0) {
+                        // 前往该泊位
+                        Instruction.ship(i,target);
+                        // 修改状态
+                        berth2Boat[target] = i;
+                        boat2Berth[i] = target;
+                    }
+                    break;
+                case 0:
+                    // 移动中
+                    break;
+
+
+            }
+
+        }
 
         // >= 1 为正常运行状态
+
+        // 3. 结束后主动flush
+        System.out.flush();
 
 //        if (!robots.get(0).instructions.isEmpty()) System.out.println(robots.get(0).instructions.poll());
     }

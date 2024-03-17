@@ -6,6 +6,14 @@ public class Instruction {
         System.out.println(String.format("move %d 2", robotId));
     }
 
+    public static void ship(int boatId, int berthId) {
+        System.out.println(String.format("ship %d %d", boatId, berthId));
+    }
+
+    public static void go(int boatId) {
+        System.out.println(String.format("go %d", boatId));
+    }
+
     public static void down(int robotId) {
         System.out.println(String.format("move %d 3", robotId));
     }
@@ -21,6 +29,7 @@ public class Instruction {
     public static void getGood(int robotId) {
         System.out.println(String.format("get %d", robotId));
     }
+
     public static void pullGood(int robotId) {
         System.out.println(String.format("pull %d", robotId));
     }
@@ -29,20 +38,23 @@ public class Instruction {
         return String.format("pull %d", robotId);
     }
 
-    public static String upString(int robotId){
+    public static String upString(int robotId) {
         return String.format("move %d 2", robotId);
     }
 
-    public static String downString(int robotId){
+    public static String downString(int robotId) {
         return String.format("move %d 3", robotId);
     }
-    public static String leftString(int robotId){
+
+    public static String leftString(int robotId) {
         return String.format("move %d 1", robotId);
     }
-    public static String rightString(int robotId){
+
+    public static String rightString(int robotId) {
         return String.format("move %d 0", robotId);
     }
-    public static String getGoodString(int robotId){
+
+    public static String getGoodString(int robotId) {
         return String.format("get %d", robotId);
     }
 
