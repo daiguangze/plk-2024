@@ -11,6 +11,11 @@ public class Berth {
      */
     public int loading_speed;
 
+    /**
+     * 该泊位现有的货物数量
+     */
+    public int goodNums;
+
     public Berth() {
     }
 
@@ -20,5 +25,6 @@ public class Berth {
         this.y = y;
         this.transport_time = transport_time;
         this.loading_speed = loading_speed;
+        this.goodNums = 0;
     }
 }

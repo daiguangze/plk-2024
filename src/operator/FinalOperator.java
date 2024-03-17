@@ -20,14 +20,14 @@ import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FinalOperator implements Operator{
+public class FinalOperator implements Operator {
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
     /**
      * 地图 固定 200 * 200
      */
-    char[][] map = new char[MAP_SIZE+10][MAP_SIZE+10];
+    char[][] map = new char[MAP_SIZE + 10][MAP_SIZE + 10];
 
     /**
      * 泊位 固定10个
@@ -68,16 +68,16 @@ public class FinalOperator implements Operator{
      */
     volatile int currentFrameId = 0;
 
-    Map<MapNode, PointMessage> mapMessage;
 
+    Map<MapNode, PointMessage> mapMessage;
 
 
     public FinalOperator(Scanner in) {
         this.in = in;
-        for(int i = 0 ; i < BERTH_NUM ; i++){
+        for (int i = 0; i < BERTH_NUM; i++) {
             disGoodList.add(new CopyOnWriteArrayList<Good>());
         }
-        for(int i = 0 ; i < ROBOT_NUM ; i++){
+        for (int i = 0; i < ROBOT_NUM; i++) {
             locks[i] = new ReentrantLock();
         }
 
@@ -152,27 +152,27 @@ public class FinalOperator implements Operator{
 
         Thread.sleep(10);
         // 1. 机器人指令处理
-        for(int i = 0 ; i <ROBOT_NUM ; i++){
+        for (int i = 0; i < ROBOT_NUM; i++) {
             locks[i].lock();
             Robot robot = robots.get(i);
-            if (robot.state >= 1 && robot.status == 1){
-                if (robot.state == 1){
+            if (robot.state >= 1 && robot.status == 1) {
+                if (robot.state == 1) {
                     // 空闲状态 等待指令状态中
-                }else if (robot.state == 2 && !robot.instructions.isEmpty()) {
+                } else if (robot.state == 2 && !robot.instructions.isEmpty()) {
                     // 取货中 取出自己的指令
                     System.out.println(robot.instructions.poll());
-                }else if (robot.state == 2 && robot.instructions.isEmpty()){
+                } else if (robot.state == 2 && robot.instructions.isEmpty()) {
                     // 变更为前往泊位状态
                     robot.state = 3;
-                }else if(robot.state == 3){
+                } else if (robot.state == 3) {
                     // 取出当前节点的路径信息
                     PointMessage message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
-                    if (message == null ){
+                    if (message == null) {
                         // 到达泊位
                         Instruction.pullGood(i);
                         robot.state = 1;
-                    }else {
-                        switch (message.actionCode){
+                    } else {
+                        switch (message.actionCode) {
                             case 1:
                                 Instruction.up(i);
                                 break;
@@ -188,7 +188,7 @@ public class FinalOperator implements Operator{
                         }
                     }
                 }
-            }else{
+            } else {
                 // 异常状态 清空所有状态信息重新计算
                 robot.instructions.clear();
                 robot.state = 1;
@@ -198,8 +198,6 @@ public class FinalOperator implements Operator{
         }
 
         // 2. 船指令
-
-
 
 
         // >= 1 为正常运行状态
@@ -218,7 +216,7 @@ public class FinalOperator implements Operator{
         for (int i = 0; i < 15000; i++) {
             try {
                 step();
-            }catch (Exception e){
+            } catch (Exception e) {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
             }
         }
@@ -240,7 +238,7 @@ public class FinalOperator implements Operator{
     /**
      * 初始化
      */
-    private void init(){
+    private void init() {
         // 1.读取地图
         getMap();
         // 2.读取泊位
@@ -251,7 +249,7 @@ public class FinalOperator implements Operator{
         getBoatCapacity();
         // 4. 读取结束
         // 5. 先把机器人初始化了先
-        for(int i = 0 ; i < ROBOT_NUM ; i++){
+        for (int i = 0; i < ROBOT_NUM; i++) {
             robots.add(new Robot());
         }
         // 6. 先把船初始化了先
@@ -263,7 +261,7 @@ public class FinalOperator implements Operator{
     }
 
     private void initMapMessage() {
-        this.mapMessage = FloodFill.getPointMessage(map,berths);
+        this.mapMessage = FloodFill.getPointMessage(map, berths);
     }
 
 
@@ -273,18 +271,18 @@ public class FinalOperator implements Operator{
      * 第二行输入一个整数, 表示场上新增货物的数量 k [0,10]
      * 紧接着K行数据,每一行表示一个新增货物, 分别由如下所示数据构成
      */
-    private void read(){
+    private void read() {
         // 帧id
-        this.currentFrameId= in.nextInt();
+        this.currentFrameId = in.nextInt();
         // 当前金钱
         int money = in.nextInt();
-        System.out.println(this.currentFrameId + " "  + money);
+        System.out.println(this.currentFrameId + " " + money);
         // 新增货物数量
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
-            Good good = new Good(in.nextInt(),in.nextInt(),in.nextInt());
+            Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
             PointMessage message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
-            if (message != null){
+            if (message != null) {
                 good.frameId = this.currentFrameId;
                 CopyOnWriteArrayList<Good> goodListz = disGoodList.get(message.berthId);
                 goodListz.add(good);
@@ -321,12 +319,12 @@ public class FinalOperator implements Operator{
     }
 
     private void getBerths() {
-        for(int i = 0; i < BERTH_NUM ;i++){
-            berths.add(new Berth(in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt(),in.nextInt()));
+        for (int i = 0; i < BERTH_NUM; i++) {
+            berths.add(new Berth(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt()));
         }
     }
 
-    private void getBoatCapacity(){
+    private void getBoatCapacity() {
         this.boatCapacity = in.nextInt();
     }
 }
