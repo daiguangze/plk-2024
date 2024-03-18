@@ -1,5 +1,7 @@
 package model;
 
+import java.awt.*;
+
 public class Good {
 
     /**
@@ -35,4 +37,10 @@ public class Good {
         this.price = price;
     }
     Good(){}
+
+    @Override
+    public boolean equals(Object obj) {
+        Good good = (Good) obj;
+        return this.x == good.x && this.y == good.y;
+    }
 }

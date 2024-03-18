@@ -44,8 +44,8 @@ public class Robot {
      * @param goods
      * @return
      */
-    private Good findGood(List<Good> goods){
-
+    public Good findGood(List<Good> goods){
+        if (goods.isEmpty()) return null;
         Good res = null;
         double minDistance = Double.MAX_VALUE;
         for (Good good : goods) {

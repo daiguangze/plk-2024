@@ -104,11 +104,14 @@ public class FinalOperator implements Operator {
                             Good good = null;
                             // 寻找第一个不过期的货物
                             while (!goodList.isEmpty() && good == null) {
-                                Good goodTemp = goodList.remove(0);
+//                                Good goodTemp = goodList.remove(0);
+                                Good goodTemp = robot.findGood(goodList);
                                 // 货物1000帧消失 预留200帧机器人行走时间
                                 if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
                                     good = goodTemp;
+                                    // 移除good
                                 }
+                                goodList.remove(goodTemp);
                             }
                             if (good == null) continue;
                             // A*
