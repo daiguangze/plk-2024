@@ -264,6 +264,8 @@ public class FinalOperator implements Operator {
                                     Instruction.go(i);
                                     boat.state = 0;
                                     boat.stayFrame = 0;
+                                    berth2Boat[x] = -1;
+                                    boat2Berth[i] = -1;
                                 }
                             }
                             break;
