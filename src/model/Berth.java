@@ -2,6 +2,7 @@ package model;
 
 public class Berth {
     public int id;
+
     public int x;
     public int y;
 
