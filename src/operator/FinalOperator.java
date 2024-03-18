@@ -5,7 +5,6 @@ import model.Berth;
 import model.Boat;
 import model.Good;
 import model.Robot;
-import org.omg.PortableInterceptor.DISCARDING;
 import util.astar.AStar;
 import util.astar.MapInfo;
 import util.astar.Node;
@@ -226,45 +225,54 @@ public class FinalOperator implements Operator {
 
             // TODO 自定义状态
             switch (boat.status) {
-                case 2:
-                    // 正常运行
-
-                    int x = boat2Berth[i];
-                    if ( x != -1){
-                        boat.styleFrame++;
-                        if (boat.styleFrame > berths.get(x).goodNums / berths.get(x).loading_speed + 2){
-                            berths.get(x).goodNums = 0;
-                            Instruction.go(i);
-                        }
-                    }
-                    break;
-                case 1:
-                    // 2 泊位外等待
-                    int target = -1;
-                    int max = 0;
-                    for (int j = 0; j < BERTH_NUM; j++) {
-                        Berth berth = berths.get(j);
-                        Integer condition = berth2Boat[j];
-                        // 该泊位此时无船处理
-                        if (condition == -1) {
-                            if (berth.goodNums > max) {
-                                max = berth.goodNums;
-                                target = berth.id;
-                            }
-                        }
-                    }
-                    if (target >= 0) {
-                        // 前往该泊位
-                        Instruction.ship(i,target);
-                        // 修改状态
-                        berth2Boat[target] = i;
-                        boat2Berth[i] = target;
-                    }
-                    break;
                 case 0:
                     // 移动中
                     break;
+                case 1:
+                    // 正常运行状态
+                    switch (boat.state){
+                        case 0:
+                            // 卸货（寻找泊位）
+                            int target = -1;
+                            int max = 0;
+                            for (int j = 0; j < BERTH_NUM; j++) {
+                                Berth berth = berths.get(j);
+                                Integer condition = berth2Boat[j];
+                                // 该泊位此时无船处理
+                                if (condition == -1) {
+                                    if (berth.goodNums > max) {
+                                        max = berth.goodNums;
+                                        target = berth.id;
+                                    }
+                                }
+                            }
+                            if (target >= 0) {
+                                // 前往该泊位
+                                Instruction.ship(i,target);
+                                // 修改状态
+                                berth2Boat[target] = i;
+                                boat2Berth[i] = target;
+                                boat.state = 1;
+                            }
+                            break;
+                        case 1:
+                            int x = boat2Berth[i];
+                            if ( x != -1){
+                                boat.stayFrame++;
+                                if (boat.stayFrame > berths.get(x).goodNums / berths.get(x).loading_speed + 2){
+                                    berths.get(x).goodNums = 0;
+                                    Instruction.go(i);
+                                    boat.state = 0;
+                                    boat.stayFrame = 0;
+                                }
+                            }
+                            break;
 
+                    }
+                    break;
+                case 2:
+                    //2 泊位外等待
+                    break;
 
             }
 

@@ -17,9 +17,10 @@ public class Boat {
     public int status;
 
     /**
-     * 扩展状态
+     * 扩展状态（0:卸货（寻找泊位），1：装货）
      */
     public int state;
+
 
     /**
      * 容量
@@ -29,7 +30,7 @@ public class Boat {
     /**
      * 停留帧
      */
-    public int styleFrame;
+    public int stayFrame;
 
 
 
