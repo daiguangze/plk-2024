@@ -141,7 +141,9 @@ public abstract class AbstractOperator implements Operator{
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {
-            boats.add(new Boat());
+            Boat boat = new Boat();
+            boat.capacity = this.boatCapacity;
+            boats.add(boat);
         }
         in.nextLine();
         String okk = in.nextLine();

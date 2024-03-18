@@ -7,7 +7,7 @@ public class PointMessage{
     public int berthId;
 
     /**
-     * 下一步行动指令 1234 上右下左
+     * 下一步行动指令 12345 上右下左放货
      */
     public int actionCode;
 

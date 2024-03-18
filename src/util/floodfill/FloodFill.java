@@ -58,6 +58,18 @@ public class FloodFill {
             queues[i].addFirst(new MapNode(x+3,y+3));
             queues[i].addFirst(new MapNode(x+3,y+1));
             queues[i].addFirst(new MapNode(x+3,y+2));
+            ans.put(new MapNode(x,y),new PointMessage(i,5));
+            ans.put(new MapNode(x,y+1),new PointMessage(i,5));
+            ans.put(new MapNode(x,y+2),new PointMessage(i,5));
+            ans.put(new MapNode(x,y+3),new PointMessage(i,5));
+            ans.put(new MapNode(x+1,y),new PointMessage(i,5));
+            ans.put(new MapNode(x+2,y),new PointMessage(i,5));
+            ans.put(new MapNode(x+3,y),new PointMessage(i,5));
+            ans.put(new MapNode(x+1,y+3),new PointMessage(i,5));
+            ans.put(new MapNode(x+2,y+3),new PointMessage(i,5));
+            ans.put(new MapNode(x+3,y+3),new PointMessage(i,5));
+            ans.put(new MapNode(x+3,y+1),new PointMessage(i,5));
+            ans.put(new MapNode(x+3,y+2),new PointMessage(i,5));
         }
 
         long start = System.currentTimeMillis();

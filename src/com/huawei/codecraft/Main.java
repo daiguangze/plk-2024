@@ -1,14 +1,11 @@
-package com.huawei;
+package com.huawei.codecraft;
 
-import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
-import operator.DefaultOperatorImpl;
 import operator.FinalOperator;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-public class MyMain {
+public class Main {
 
 
 
