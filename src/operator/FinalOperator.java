@@ -1,5 +1,6 @@
 package operator;
 
+import com.sun.jndi.ldap.Ber;
 import instruction.Instruction;
 import model.Berth;
 import model.Boat;
@@ -12,6 +13,7 @@ import util.floodfill.FloodFill;
 import util.floodfill.MapNode;
 import util.floodfill.PointMessage;
 
+import java.time.chrono.IsoChronology;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,7 +73,6 @@ public class FinalOperator implements Operator {
      */
     int[] berth2Boat = new int[BERTH_NUM];
     int[] boat2Berth = new int[BOAT_NUM];
-
 
     public FinalOperator(Scanner in) {
         this.in = in;
@@ -141,7 +142,6 @@ public class FinalOperator implements Operator {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
     }
 
 
@@ -203,10 +203,8 @@ public class FinalOperator implements Operator {
         }
 
         // 2. 船指令
-        // 找个没人的泊位
         for (int i = 0; i < boats.size(); i++) {
             Boat boat = boats.get(i);
-
             switch (boat.status) {
                 case 0:
                     // 移动中
@@ -216,44 +214,47 @@ public class FinalOperator implements Operator {
                     switch (boat.state) {
                         case 0:
                             // 卸货（寻找泊位）
-//                            int target = -1;
-//                            int max = 0;
-//                            for (int j = 0; j < BERTH_NUM; j++) {
-//                                Berth berth = berths.get(j);
-//                                Integer condition = berth2Boat[j];
-//                                // 该泊位此时无船处理
-//                                if (condition == -1) {
-//                                    if (berth.goodNums > max) {
-//                                        max = berth.goodNums;
-//                                        target = berth.id;
-//                                    }
-//                                }
-//                            }
-//                            if (target >= 0) {
-//                                // 前往该泊位
-//                                Instruction.ship(i,target);
-//                                // 修改状态
-//                                berth2Boat[target] = i;
-//                                boat2Berth[i] = target;
-//                                boat.state = 1;
-//                            }
-                            getTargetBerth(i);
+                            boat.loadedGoodsNum = 0;
+                            getTargetBerth(i,0);
                             break;
                         case 1:
+                            // 在泊位装货
                             int x = boat2Berth[i];
                             if (x != -1) {
-                                boat.stayFrame++;
-                                if (boat.stayFrame > berths.get(x).goodNums / berths.get(x).loading_speed + 2) {
-                                    berths.get(x).goodNums = 0;
+                                Berth berth = berths.get(x);
+
+                                // 装货
+                                {
+                                    // 如果单次装货货物超出最大容量
+                                    if (berth.loading_speed + boat.loadedGoodsNum > boat.capacity) {
+                                        berth.goodNums -= boat.capacity - boat.loadedGoodsNum;
+                                        boat.loadedGoodsNum = boat.capacity;
+                                    }
+                                    // 如果泊位剩余货物不足单次装货数量
+                                    else if (berth.loading_speed > berth.goodNums) {
+                                        boat.loadedGoodsNum += berth.goodNums;
+                                        berth.goodNums = 0;
+                                    }
+                                    // 普通一帧内装货
+                                    else {
+                                        boat.loadedGoodsNum += berth.loading_speed;
+                                        berth.goodNums -= berth.loading_speed;
+                                    }
+                                }
+
+                                // 船满了，或者没时间了，去虚拟点
+                                if (boat.loadedGoodsNum == boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
-                                    boat.state = 0;
-                                    boat.stayFrame = 0;
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
+                                    boat.state = 0;
+                                }
+                                // 泊位空了，去下一个泊位
+                                else if (berth.goodNums == 0) {
+                                    getTargetBerth(i, 1);
                                 }
                             }
                             break;
-
                     }
                     break;
                 case 2:
@@ -280,7 +281,7 @@ public class FinalOperator implements Operator {
         String okk = in.nextLine();
         System.out.println("OK");
         System.out.flush();
-        for (int i = 0; i < 15000; i++) {
+        for (int i = 0; i < MAX_FRAME; i++) {
             try {
                 step();
             } catch (Exception e) {
@@ -321,7 +322,9 @@ public class FinalOperator implements Operator {
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {
-            boats.add(new Boat());
+            Boat boat = new Boat();
+            boat.capacity = this.boatCapacity;
+            boats.add(boat);
         }
         in.nextLine();
 
@@ -351,8 +354,7 @@ public class FinalOperator implements Operator {
             PointMessage message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
             if (message != null) {
                 good.frameId = this.currentFrameId;
-                CopyOnWriteArrayList<Good> goodListz = disGoodList.get(message.berthId);
-                goodListz.add(good);
+                disGoodList.get(message.berthId).add(good);
             }
 //            goods.add(good);
         }
@@ -396,31 +398,61 @@ public class FinalOperator implements Operator {
     }
 
     /**
-     * 寻找目标泊位
+     * 寻找目标泊位，并移动到该泊位
      *
      * @param i 船的序号
+     * @param situation 情况（0：在虚拟点寻找目标泊位；1：在泊位处寻找目标泊位）
      */
-    private void getTargetBerth(int i) {
+    private void getTargetBerth(int i, int situation) {
         int target = -1;
-        int max = 0;
-        for (int j = 0; j < BERTH_NUM; j++) {
-            Berth berth = berths.get(j);
-            int condition = berth2Boat[j];
-            // 该泊位此时无船处理
-            if (condition == -1) {
-                if (berth.goodNums > max) {
-                    max = berth.goodNums;
-                    target = berth.id;
+        Boat boat = boats.get(i);
+
+        switch (situation){
+            case 0: // 在虚拟点，优先找到一个货物最大的泊位
+                int max = 0;
+                for (int j = 0; j < BERTH_NUM; j++) {
+                    Berth berth = berths.get(j);
+                    int condition = berth2Boat[j];
+                    // 该泊位此时无船处理
+                    if (condition == -1) {
+                        if (berth.goodNums >= max) {
+                            max = berth.goodNums;
+                            target = berth.id;
+                        }
+                    }
                 }
-            }
+                break;
+            case 1: // 在泊位处，等到某个泊位处的货物数量超过了容积的3/4，即动身前往
+                for(int j =0; j< BERTH_NUM; j++){
+                    Berth berth = berths.get(j);
+                    if (berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.75 && berth2Boat[j] == -1){
+                        target = berth.id;
+                    }
+                }
+                break;
         }
-        if (target >= 0) {
+
+
+        if (target == -1) return;
+
+        // 没时间了！赶紧送货！！！
+        if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
+            Instruction.go(i);
+            boats.get(i).state = 0;
+            return;
+        }
+
+        {
             // 前往该泊位
             Instruction.ship(i, target);
             // 修改状态
+            if(boat2Berth[i] != -1){
+                berth2Boat[boat2Berth[i]] = -1;
+            }
             berth2Boat[target] = i;
             boat2Berth[i] = target;
             boats.get(i).state = 1;
         }
+
     }
 }

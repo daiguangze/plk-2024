@@ -28,6 +28,11 @@ public class Boat {
     public int capacity;
 
     /**
+     * 装载货物数量
+     */
+    public int loadedGoodsNum;
+
+    /**
      * 停留帧
      */
     public int stayFrame;
