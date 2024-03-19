@@ -128,21 +128,22 @@ public class FinalOperator implements Operator {
 //                                    good = goodTemp;
 //                                }
                             }
-                            if (good == null) continue;
-                            // A*
-                            aStar.setRobotId(i);
-                            if (robot.instructions.isEmpty() && robot.state == 1) {
-                                Node robotNode = new Node(robot.x, robot.y);
-                                Node goodNode = new Node(good.x, good.y);
+                            if (good != null) {
+                                // A*
+                                aStar.setRobotId(i);
+                                if (robot.instructions.isEmpty() && robot.state == 1) {
+                                    Node robotNode = new Node(robot.x, robot.y);
+                                    Node goodNode = new Node(good.x, good.y);
 //                                Node goodNode = new Node(73,49);
-                                // A*计算路径
-                                aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
-                                // 将A* 里面的指令copy到机器人指令队列
-                                while (!aStar.instructions.isEmpty()) {
-                                    robot.instructions.add(aStar.instructions.pop());
+                                    // A*计算路径
+                                    aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
+                                    // 将A* 里面的指令copy到机器人指令队列
+                                    while (!aStar.instructions.isEmpty()) {
+                                        robot.instructions.add(aStar.instructions.pop());
+                                    }
+                                    robot.instructions.add(Instruction.getGoodString(i));
+                                    robot.state = 2;
                                 }
-                                robot.instructions.add(Instruction.getGoodString(i));
-                                robot.state = 2;
                             }
                         }
                         locks[i].unlock();
