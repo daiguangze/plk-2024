@@ -27,6 +27,9 @@ public class RebalanceFloodFill {
      */
     public static int[] areas = new int[10];
 
+    public static int[] robot2Berth = new int[10];
+
+    public static int[] allocation = new int[]{0,1,2,3,4,5,6,7,8,9};
 
     public static void main(String[] args) throws FileNotFoundException {
         Scanner in = new Scanner(new File(FloodFill.class.getResource("/").toString().substring(6) + "\\maps\\map8.txt"));
@@ -41,7 +44,9 @@ public class RebalanceFloodFill {
             berths.add(new Berth(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt()));
         }
         ans = getPointMessage(maps, berths);
-        for (int xixi : areas) System.out.println(xixi + " ");
+        for (int xixi : areas) System.out.print(xixi + " ");
+        System.out.println();
+        for(int xixi : allocation) System.out.print(xixi +" ");
     }
 
     public static Map<MapNode, PointMessageV2> getPointMessage(char[][] maps, List<Berth> berths) {
@@ -141,6 +146,21 @@ public class RebalanceFloodFill {
 
         }
 
+        // 得出绑定关系
+        int[] temp = Arrays.copyOf(areas,10);
+        for(int p = 0 ; p < ignoreIds.size() ; p++){
+            int max = temp[0];
+            int index = 0;
+            for(int i = 0 ; i < 10 ; i++){
+                if (max < temp[i]){
+                    max = temp[i];
+                    index = i;
+                }
+            }
+            // 将 ignoreid中的机器人分配给这个比较多的区域
+            temp[index] /= 2;
+            allocation[ignoreIds.get(p)] = index;
+        }
         return ans;
     }
 
