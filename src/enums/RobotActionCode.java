@@ -1,9 +1,10 @@
-package util.astar;
+package enums;
 
 public enum RobotActionCode {
     LEFT,
     RIGHT,
     UP,
     DOWN,
-    PUSH
+    PULL,
+    GET
 }
