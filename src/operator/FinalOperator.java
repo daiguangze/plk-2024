@@ -353,7 +353,7 @@ public class FinalOperator implements Operator {
         // 4. 读取结束
         // 5. 先把机器人初始化了先
         for (int i = 0; i < ROBOT_NUM; i++) {
-            robots.add(new Robot());
+            robots.add(new Robot(i));
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {

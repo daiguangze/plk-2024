@@ -8,10 +8,16 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
- * 可以平衡各个区域大小的洪水算法
+ * 平衡洪水算法
+ * 添加新特性:
+ * 1. 会做一轮平衡操作
+ * 2. 会计算出新的机器人泊位对应关系
  */
 public class RebalanceFloodFill {
 
+    /**
+     * 弃用的泊位列表
+     */
     public static List<Integer> ignoreIds = new ArrayList<>();
 
     /**
@@ -27,8 +33,10 @@ public class RebalanceFloodFill {
      */
     public static int[] areas = new int[10];
 
-    public static int[] robot2Berth = new int[10];
-
+    /**
+     * 机器人对应的泊位
+     * 默认为 index对应
+     */
     public static int[] allocation = new int[]{0,1,2,3,4,5,6,7,8,9};
 
     public static void main(String[] args) throws FileNotFoundException {

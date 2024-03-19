@@ -1,8 +1,8 @@
 package util.astar;
 
 public class Coord {
-    int x;
-    int y;
+    public int x;
+    public int y;
 
     public Coord(int x, int y) {
         this.x = x;
