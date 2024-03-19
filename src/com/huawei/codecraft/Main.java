@@ -14,7 +14,6 @@ public class Main {
         Scanner in = new Scanner(System.in);
 //        Scanner in = new Scanner(new File(Main.class.getResource("/").toString().substring(6) + "\\log.txt"));
         // Scanner in = new Scanner(System.in);
-       Scanner in = new Scanner(new File(Main.class.getResource("/").toString().substring(6) + "\\log.txt"));
 //        OperatorImpl operator = new OperatorImpl(in);
 //        operator.init();
 //        operator.run();
