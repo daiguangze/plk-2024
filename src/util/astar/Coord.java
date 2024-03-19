@@ -19,4 +19,9 @@ public class Coord {
         // 检查 x y
         return this.x == node.x && this.y == node.y;
     }
+
+    @Override
+    public int hashCode() {
+        return x+y;
+    }
 }
