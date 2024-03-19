@@ -124,7 +124,7 @@ public class FloodFill {
 
     private static boolean isValid(char[][] maps ,int[][] visited , int x, int y){
         if (x < 0 || x >= maps.length ) return false;
-        if (y < 0 || y >= maps.length ) return false;
+        if (y < 0 || y >= maps[0].length ) return false;
         if (visited[x][y] != -1) return false;
         if (maps[x][y] != '.'){
             if (maps[x][y] != 'A') return false;
