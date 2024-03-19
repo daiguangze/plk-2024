@@ -11,6 +11,8 @@ public interface Operator {
 
     final int ROBOT_NUM = 10;
 
+    final int MAX_FRAME = 15000;
+
     public void run();
 
 

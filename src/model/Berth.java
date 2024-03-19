@@ -9,7 +9,8 @@ public class Berth {
     /**
      * 轮船到虚拟点的时间
      */
-    public int transport_time;
+    public int transportTime;
+
 
     /**
      * 每帧可以装载的物品数
@@ -24,11 +25,11 @@ public class Berth {
     public Berth() {
     }
 
-    public Berth(int id,int x, int y, int transport_time, int loading_speed) {
+    public Berth(int id, int x, int y, int transportTime, int loading_speed) {
         this.id = id;
         this.x = x;
         this.y = y;
-        this.transport_time = transport_time;
+        this.transportTime = transportTime;
         this.loading_speed = loading_speed;
         this.goodNums = 0;
     }
