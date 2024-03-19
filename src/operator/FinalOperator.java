@@ -98,18 +98,35 @@ public class FinalOperator implements Operator {
                 try {
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         locks[i].lock();
+                        Robot robot = robots.get(i);
                         List<Good> goodList = disGoodList.get(i);
-                        if (!goodList.isEmpty()) {
+                        Berth berth = berths.get(i);
+                        if (!goodList.isEmpty() && robot.state == 1) {
                             aStar.setRobotId(i);
-                            Robot robot = robots.get(i);
                             Good good = null;
-                            // 寻找第一个不过期的货物
+                            // 寻找距离港口最近的货物
+                            // TODO 要改成最小代价
                             while (!goodList.isEmpty() && good == null) {
-                                Good goodTemp = goodList.remove(0);
+//                                Good goodTemp = goodList.remove(0);
+                                double min = 10000;
+                                int targetGood = -1;
+                                Iterator<Good> iterator = goodList.iterator();
                                 // 货物1000帧消失 预留200帧机器人行走时间
-                                if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
-                                    good = goodTemp;
+                                goodList.removeIf(goodTemp -> goodTemp.frameId + 1000 - 200 < currentFrameId);
+
+                                for (Good goodTemp : goodList){
+                                    if (Math.sqrt(Math.pow(goodTemp.x - berth.x, 2)  + Math.pow(goodTemp.y - berth.y, 2) ) < min) {
+                                        min = Math.sqrt(Math.pow(goodTemp.x - berth.x, 2) + Math.pow(goodTemp.y - berth.y, 2));
+                                        good = goodTemp;
+                                    }
                                 }
+
+                                goodList.remove(good);
+
+//                                // 货物1000帧消失 预留200帧机器人行走时间
+//                                if (goodTemp != null && goodTemp.frameId + 1000 - 200 > currentFrameId) {
+//                                    good = goodTemp;
+//                                }
                             }
                             if (good == null) continue;
                             // A*
@@ -153,7 +170,12 @@ public class FinalOperator implements Operator {
         Thread.sleep(10);
         // 1. 机器人指令处理
         for (int i = 0; i < ROBOT_NUM; i++) {
-            locks[i].lock();
+            try{
+                locks[i].lock();
+            }catch (Exception e){
+
+            }
+
             Robot robot = robots.get(i);
             if (robot.state >= 1 && robot.status == 1) {
                 if (robot.state == 1) {
@@ -215,7 +237,7 @@ public class FinalOperator implements Operator {
                         case 0:
                             // 卸货（寻找泊位）
                             boat.loadedGoodsNum = 0;
-                            getTargetBerth(i,0);
+                            getTargetBerth(i, 0);
                             break;
                         case 1:
                             // 在泊位装货
@@ -400,14 +422,14 @@ public class FinalOperator implements Operator {
     /**
      * 寻找目标泊位，并移动到该泊位
      *
-     * @param i 船的序号
+     * @param i         船的序号
      * @param situation 情况（0：在虚拟点寻找目标泊位；1：在泊位处寻找目标泊位）
      */
     private void getTargetBerth(int i, int situation) {
         int target = -1;
         Boat boat = boats.get(i);
 
-        switch (situation){
+        switch (situation) {
             case 0: // 在虚拟点，优先找到一个货物最大的泊位
                 int max = 0;
                 for (int j = 0; j < BERTH_NUM; j++) {
@@ -423,9 +445,9 @@ public class FinalOperator implements Operator {
                 }
                 break;
             case 1: // 在泊位处，等到某个泊位处的货物数量超过了容积的3/4，即动身前往
-                for(int j =0; j< BERTH_NUM; j++){
+                for (int j = 0; j < BERTH_NUM; j++) {
                     Berth berth = berths.get(j);
-                    if (berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.75 && berth2Boat[j] == -1){
+                    if (berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.75 && berth2Boat[j] == -1) {
                         target = berth.id;
                     }
                 }
@@ -438,6 +460,10 @@ public class FinalOperator implements Operator {
         // 没时间了！赶紧送货！！！
         if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
             Instruction.go(i);
+            if (boat2Berth[i] != -1) {
+                berth2Boat[boat2Berth[i]] = -1;
+                boat2Berth[i] = -1;
+            }
             boats.get(i).state = 0;
             return;
         }
@@ -446,7 +472,7 @@ public class FinalOperator implements Operator {
             // 前往该泊位
             Instruction.ship(i, target);
             // 修改状态
-            if(boat2Berth[i] != -1){
+            if (boat2Berth[i] != -1) {
                 berth2Boat[boat2Berth[i]] = -1;
             }
             berth2Boat[target] = i;
