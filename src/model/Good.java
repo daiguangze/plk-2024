@@ -28,6 +28,11 @@ public class Good {
      */
     public int frameId;
 
+    /**
+     * 货物性价比 价格/欧式距离
+     */
+    public double costBenefitRatio;
+
 
     public Good(int x, int y, int price) {
         this.x = x;
