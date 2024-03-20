@@ -33,6 +33,8 @@ public class Robot {
 
     public int mby;
 
+    public Good targetGood;
+
     /**
      * 指令队列 , 暂时不用考虑线程安全
      */

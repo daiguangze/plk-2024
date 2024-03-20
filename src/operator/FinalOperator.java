@@ -130,7 +130,8 @@ public class FinalOperator implements Operator {
                                     // 货物1000帧消失 预留200帧机器人行走时间
                                     if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
                                         good = goodTemp;
-                                        goodList.remove(goodTemp);
+                                        robot.targetGood = goodTemp;
+                                        // goodList.remove(goodTemp);
                                         break;
                                     } else {
                                         goodList.remove(goodTemp);
@@ -193,8 +194,18 @@ public class FinalOperator implements Operator {
                     // 空闲状态 等待指令状态中
                 } else if (robot.state == 2 && !robot.instructions.isEmpty()) {
                     // 取货中 取出自己的指令 如果有性价比更高的货物，则更改目标货物 没加这个，24w5
-                    // changeTargetGoodByAstar(i, robot);
-                    System.out.println(robot.instructions.poll());
+                    changeTargetGood(i, robot);
+                    String poll = robot.instructions.poll();
+                    if (poll.startsWith("get")) {
+                        CopyOnWriteArrayList<Good> goods = disGoodList.get(i);
+                        for (Good good : goods) {
+                            if (good.x == robot.x && good.y == robot.y) {
+                                goods.remove(good);
+                                break;
+                            }
+                        }
+                    }
+                    System.out.println(poll);
                 } else if (robot.state == 2 && robot.instructions.isEmpty()) {
                     // 变更为前往泊位状态
                     robot.state = 3;
@@ -516,7 +527,8 @@ public class FinalOperator implements Operator {
                     // 货物1000帧消失 预留200帧机器人行走时间
                     if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
                         good = goodTemp;
-                        goodList.remove(goodTemp);
+                        robot.targetGood = goodTemp;
+                        // goodList.remove(goodTemp);
                         break;
                     } else {
                         goodList.remove(goodTemp);
@@ -527,12 +539,11 @@ public class FinalOperator implements Operator {
                 aStar.setRobotId(i);
                 Node robotNode = new Node(robot.x, robot.y);
                 Node goodNode = new Node(good.x, good.y);
-//                                Node goodNode = new Node(73,49);
                 // A*计算路径
                 aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
+                robot.instructions.clear();
                 // 将A* 里面的指令copy到机器人指令队列
                 while (!aStar.instructions.isEmpty()) {
-                    robot.instructions.clear();
                     robot.instructions.add(aStar.instructions.pop());
                 }
                 robot.instructions.add(Instruction.getGoodString(i));
@@ -548,24 +559,25 @@ public class FinalOperator implements Operator {
                 Optional<Good> maxCostBenefitGood = goodList.stream()
                         .max((good1, good2) -> {
                             AStar aStar1 = new AStar('.', i);
-                            AStar aStar2 = new AStar('.', i);
                             Node robotNode = new Node(robot.x, robot.y);
                             Node goodNode1 = new Node(good1.x, good1.y);
                             aStar1.start(new MapInfo(map, map.length, map.length, robotNode, goodNode1));
+                            AStar aStar2 = new AStar('.', i);
                             Node goodNode2 = new Node(good2.x, good2.y);
                             aStar2.start(new MapInfo(map, map.length, map.length, robotNode, goodNode2));
                             int size1 = aStar1.instructions.size();
                             int size2 = aStar2.instructions.size();
-                            int cost = good1.price / size1;
-                            int cost2 = good2.price / size2;
-                            return cost2 - cost;
+                            double cost = good1.price / size1;
+                            double cost2 = good2.price / size2;
+                            return Double.compare(cost, cost2);
                         });
                 if (maxCostBenefitGood.isPresent()) {
                     Good goodTemp = maxCostBenefitGood.get();
                     // 货物1000帧消失 预留200帧机器人行走时间
                     if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
                         good = goodTemp;
-                        goodList.remove(goodTemp);
+                        robot.targetGood = goodTemp;
+                        // goodList.remove(goodTemp);
                         break;
                     } else {
                         goodList.remove(goodTemp);
@@ -581,9 +593,9 @@ public class FinalOperator implements Operator {
 //                                Node goodNode = new Node(73,49);
                 // A*计算路径
                 aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
+                robot.instructions.clear();
                 // 将A* 里面的指令copy到机器人指令队列
                 while (!aStar.instructions.isEmpty()) {
-                    robot.instructions.clear();
                     robot.instructions.add(aStar.instructions.pop());
                 }
                 robot.instructions.add(Instruction.getGoodString(i));
