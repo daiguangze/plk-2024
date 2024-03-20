@@ -179,7 +179,6 @@ public class FinalOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(10);
         // 1. 机器人指令处理
         for (int i = 0; i < ROBOT_NUM; i++) {
             try{

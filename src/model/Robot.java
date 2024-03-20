@@ -144,6 +144,7 @@ public class Robot {
     }
 
     public boolean doMove(Coord next, int[][] conflictMap) throws Exception {
+        if(next.equals(new Coord(this.x,this.y))) return true;
         if (!isConflict(next, conflictMap)) {
             // 解锁
             conflictMap[this.x][this.y] = -1;

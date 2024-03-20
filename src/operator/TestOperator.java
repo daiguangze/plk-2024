@@ -107,7 +107,7 @@ public class TestOperator implements Operator {
                         Robot robot = robots.get(i);
                         List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         Berth berth = berths.get(i);
-                        if (!goodList.isEmpty() && robot.state == 1) {
+                        if (!goodList.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
                             while (!goodList.isEmpty() && good == null) {
                                 Optional<Good> maxCostBenefitGood = goodList.stream()
@@ -128,7 +128,7 @@ public class TestOperator implements Operator {
                             }
                             if (good != null) {
                                 // A*
-                                if (robot.instructionsV2.isEmpty() && robot.state == 1) {
+                                if (robot.instructionsV2.isEmpty() && robot.robotState == RobotState.BORING) {
                                     Node robotNode = new Node(robot.x, robot.y);
                                     Node goodNode = new Node(good.x, good.y);
 //                                Node goodNode = new Node(73,49);
@@ -140,7 +140,7 @@ public class TestOperator implements Operator {
                                     }
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
                                     robot.instructionsV2.add(new Coord(-1, -1));
-                                    robot.state = 2;
+                                    robot.robotState = RobotState.FINDING_GOOD;
                                 }
                             }
                         }
@@ -167,27 +167,26 @@ public class TestOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(10);
         // 1. 机器人指令处理
         for (int i = 0; i < ROBOT_NUM; i++) {
             try {
                 locks[i].lock();
                 Robot robot = robots.get(i);
-                if (robot.state >= 1 && robot.status == 1) {
-                    if (robot.state == 1) {
+                if ((robot.robotState ==RobotState.BORING || robot.robotState ==RobotState.FINDING_GOOD || robot.robotState ==RobotState.GO_BERTH)&& robot.status == 1) {
+                    if (robot.robotState == RobotState.BORING) {
                         // 空闲状态 等待指令状态中
-                    } else if (robot.state == 2 && !robot.instructionsV2.isEmpty()) {
+                    } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
                         robot.move(robot.instructionsV2.peek(),collision);
-                    } else if (robot.state == 2 && robot.instructionsV2.isEmpty()) {
+                    } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
-                        robot.state = 3;
-                    } else if (robot.state == 3) {
+                        robot.robotState = RobotState.GO_BERTH;
+                    } else if (robot.robotState == RobotState.GO_BERTH) {
                         // 取出当前节点的路径信息
                         PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                         if (message == null) {
                             // 到达泊位 变更为空闲状态
 //                        Instruction.pullGood(i);
-                            robot.state = 1;
+                            robot.robotState = RobotState.BORING;
                         } else {
                             switch (message.actionCode) {
                                 case UP:
@@ -205,7 +204,7 @@ public class TestOperator implements Operator {
                                 case PULL:
                                     Instruction.pullGood(i);
                                     berths.get(i).goodNums++;
-                                    robot.state = 1;
+                                    robot.robotState = RobotState.BORING;
                                     break;
                             }
                         }
@@ -213,7 +212,7 @@ public class TestOperator implements Operator {
                 } else {
                     // 异常状态 清空所有状态信息重新计算
                     robot.instructionsV2.clear();
-                    robot.state = 1;
+                    robot.robotState= RobotState.BORING;
                 }
 
             } catch (Exception e) {
