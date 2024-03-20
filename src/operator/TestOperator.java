@@ -167,7 +167,7 @@ public class TestOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(10);
+        Thread.sleep(5);
         // 1. 机器人指令处理
         List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
@@ -210,7 +210,7 @@ public class TestOperator implements Operator {
                                 case PULL:
                                     Instruction.pullGood(i);
                                     robot.instructionsV2.clear();
-                                    berths.get(i).goodNums++;
+                                    berths.get(message.berthId).goodNums++;
                                     robot.robotState = RobotState.BORING;
                                     break;
                             }
