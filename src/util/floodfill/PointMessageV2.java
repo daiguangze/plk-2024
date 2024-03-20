@@ -13,14 +13,8 @@ public class PointMessageV2 {
      */
     public RobotActionCode actionCode;
 
-    /**
-     * 到达泊位点的最短路径
-     */
-    public int DistToBerth;
-
-    public PointMessageV2(int berthId, RobotActionCode actionCode, int Dist) {
+    public PointMessageV2(int berthId, RobotActionCode actionCode) {
         this.berthId = berthId;
         this.actionCode = actionCode;
-        this.DistToBerth = Dist;
     }
 }

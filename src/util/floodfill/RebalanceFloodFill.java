@@ -90,18 +90,18 @@ public class RebalanceFloodFill {
                 queues[i].addFirst(new MapNode(x + 3, y + 3));
                 queues[i].addFirst(new MapNode(x + 3, y + 1));
                 queues[i].addFirst(new MapNode(x + 3, y + 2));
-                ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL));
+                ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL));
                 areas[i] += 12;
             }
 
@@ -135,7 +135,7 @@ public class RebalanceFloodFill {
                     }
                 }
                 while (ignoreIds.size() < 2) {
-                    // 最少也会塞2个进去
+                    // 最少也会赛2个进去
                     int min = areas[0];
                     int index = 0;
                     for (int i = 0; i < 10; i++) {
@@ -209,18 +209,18 @@ public class RebalanceFloodFill {
             queues[i].addFirst(new MapNode(x + 3, y + 3));
             queues[i].addFirst(new MapNode(x + 3, y + 1));
             queues[i].addFirst(new MapNode(x + 3, y + 2));
-            ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+            ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL));
+            ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL));
             areas[i] += 12;
         }
 
@@ -247,40 +247,32 @@ public class RebalanceFloodFill {
     private static void addFrontiers(char[][] maps, int[][] visited, MapNode mapNode, ArrayDeque<MapNode> queue, int i, Map<MapNode, PointMessageV2> ans) {
         int x = mapNode.x;
         int y = mapNode.y;
-        // 当前点的message
-        PointMessageV2 messageV2 = ans.getOrDefault(new MapNode(x, y), null);
-        int dist = Integer.MAX_VALUE - 400; // 减400防止溢出
-        if (messageV2 != null){
-            // 当前点到泊位的路程距离
-            dist = messageV2.DistToBerth;
-        }
-
         // 下   , 路径指向上
         if (isValid(maps, visited, x + 1, y)) {
             visited[x + 1][y] = i;
             queue.addFirst(new MapNode(x + 1, y));
-            ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.UP, dist + 1));
+            ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.UP));
             areas[i] += 1;
         }
         // 右
         if (isValid(maps, visited, x, y + 1)) {
             visited[x][y + 1] = i;
             queue.addFirst(new MapNode(x, y + 1));
-            ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.LEFT, dist + 1));
+            ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.LEFT));
             areas[i] += 1;
         }
         // 上
         if (isValid(maps, visited, x - 1, y)) {
             visited[x - 1][y] = i;
             queue.addFirst(new MapNode(x - 1, y));
-            ans.put(new MapNode(x - 1, y), new PointMessageV2(i, RobotActionCode.DOWN, dist + 1));
+            ans.put(new MapNode(x - 1, y), new PointMessageV2(i, RobotActionCode.DOWN));
             areas[i] += 1;
         }
         // 左
         if (isValid(maps, visited, x, y - 1)) {
             visited[x][y - 1] = i;
             queue.addFirst(new MapNode(x, y - 1));
-            ans.put(new MapNode(x, y - 1), new PointMessageV2(i, RobotActionCode.RIGHT, dist + 1));
+            ans.put(new MapNode(x, y - 1), new PointMessageV2(i, RobotActionCode.RIGHT));
             areas[i] += 1;
         }
 
