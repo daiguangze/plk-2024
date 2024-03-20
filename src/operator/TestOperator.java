@@ -21,7 +21,7 @@ public class TestOperator implements Operator {
     /**
      * 地图 固定 200 * 200
      */
-    char[][] map = new char[MAP_SIZE + 10][MAP_SIZE + 10];
+    char[][] map = new char[MAP_SIZE][MAP_SIZE];
 
     /**
      * 泊位 固定10个
@@ -384,12 +384,15 @@ public class TestOperator implements Operator {
             if (message != null) {
                 good.frameId = this.currentFrameId;
                 // 计算新货物相对于所属泊位的性价比
-                for (Berth berth : berths) {
-                    if (berth.id == message.berthId) {
-                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
-                        good.costBenefitRatio = good.price / euDistance;
-                    }
-                }
+//                for (Berth berth : berths) {
+//                    if (berth.id == message.berthId) {
+//                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
+//                        good.costBenefitRatio = good.price / euDistance;
+                        // 取距离泊位的路程距离
+//                        int distance =
+//                    }
+                good.costBenefitRatio = (double) good.price / message.DistToBerth;
+
                 disGoodList.get(message.berthId).add(good);
             }
 //            goods.add(good);

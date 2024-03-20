@@ -26,7 +26,7 @@ public class FinalOperator implements Operator {
     /**
      * 地图 固定 200 * 200
      */
-    char[][] map = new char[MAP_SIZE + 10][MAP_SIZE + 10];
+    char[][] map = new char[MAP_SIZE][MAP_SIZE];
 
     /**
      * 泊位 固定10个
@@ -106,23 +106,6 @@ public class FinalOperator implements Operator {
                             aStar.setRobotId(i);
                             Good good = null;
                             // 寻找距离港口最近的货物
-//                             while (!goodList.isEmpty() && good == null) {
-// //                                Good goodTemp = goodList.remove(0);
-//                                 double min = 10000;
-//                                 int targetGood = -1;
-//                                 Iterator<Good> iterator = goodList.iterator();
-//                                 // 货物1000帧消失 预留200帧机器人行走时间
-//                                 goodList.removeIf(goodTemp -> goodTemp.frameId + 1000 - 200 < currentFrameId);
-//
-//                                 for (Good goodTemp : goodList){
-//                                     if (Math.sqrt(Math.pow(goodTemp.x - berth.x, 2)  + Math.pow(goodTemp.y - berth.y, 2) ) < min) {
-//                                         min = Math.sqrt(Math.pow(goodTemp.x - berth.x, 2) + Math.pow(goodTemp.y - berth.y, 2));
-//                                         good = goodTemp;
-//                                     }
-//                                 }
-//
-//                                 goodList.remove(good);
-//                             }
                             while (!goodList.isEmpty() && good == null) {
                                 Optional<Good> maxCostBenefitGood = goodList.stream()
                                         .max(Comparator.comparingDouble(g -> g.costBenefitRatio));
@@ -390,12 +373,13 @@ public class FinalOperator implements Operator {
             if (message != null) {
                 good.frameId = this.currentFrameId;
                 // 计算新货物相对于所属泊位的性价比
-                for (Berth berth : berths) {
-                    if (berth.id == message.berthId) {
-                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
-                        good.costBenefitRatio = good.price / euDistance;
-                    }
-                }
+//                for (Berth berth : berths) {
+//                    if (berth.id == message.berthId) {
+//                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
+//                        good.costBenefitRatio = good.price / euDistance;
+//                    }
+//                }
+                good.costBenefitRatio = (double) good.price / message.DistToBerth;
                 disGoodList.get(message.berthId).add(good);
             }
 //            goods.add(good);
