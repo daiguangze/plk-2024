@@ -25,7 +25,7 @@ public class FinalOperator implements Operator {
     /**
      * 地图 固定 200 * 200
      */
-    char[][] map = new char[MAP_SIZE + 10][MAP_SIZE + 10];
+    char[][] map = new char[MAP_SIZE][MAP_SIZE];
 
     /**
      * 泊位 固定10个
