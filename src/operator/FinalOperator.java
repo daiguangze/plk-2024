@@ -1,6 +1,7 @@
 package operator;
 
 import com.sun.jndi.ldap.Ber;
+import enums.RobotState;
 import instruction.Instruction;
 import model.Berth;
 import model.Boat;
@@ -161,7 +162,6 @@ public class FinalOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(10);
         // 1. 机器人指令处理
         for (int i = 0; i < ROBOT_NUM; i++) {
             try{
@@ -336,7 +336,7 @@ public class FinalOperator implements Operator {
         // 4. 读取结束
         // 5. 先把机器人初始化了先
         for (int i = 0; i < ROBOT_NUM; i++) {
-            robots.add(new Robot(i));
+            robots.add(new Robot(i, RobotState.BORING));
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {

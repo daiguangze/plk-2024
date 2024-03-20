@@ -186,11 +186,13 @@ public class AStarV2 {
      */
     private void generateInstruction(Node end){
         Node p = end;
+        instructions.push(p.coord);
         while(p.parent != null){
             Node parent = p.parent;
             instructions.push(parent.coord);
             p = p.parent;
         }
+        instructions.pop();
     }
 
 }

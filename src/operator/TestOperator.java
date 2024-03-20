@@ -1,6 +1,7 @@
 package operator;
 
 import enums.RobotActionCode;
+import enums.RobotState;
 import instruction.Instruction;
 import model.Berth;
 import model.Boat;
@@ -106,7 +107,7 @@ public class TestOperator implements Operator {
                         Robot robot = robots.get(i);
                         List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         Berth berth = berths.get(i);
-                        if (!goodList.isEmpty() && robot.state == 1) {
+                        if (!goodList.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
                             while (!goodList.isEmpty() && good == null) {
                                 Optional<Good> maxCostBenefitGood = goodList.stream()
@@ -114,7 +115,7 @@ public class TestOperator implements Operator {
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
                                     // 货物1000帧消失 预留200帧机器人行走时间
-                                    if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
+                                    if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
                                         good = goodTemp;
                                         // 锁定后超时
                                         goodList.remove(goodTemp);
@@ -127,7 +128,7 @@ public class TestOperator implements Operator {
                             }
                             if (good != null) {
                                 // A*
-                                if (robot.instructionsV2.isEmpty() && robot.state == 1) {
+                                if (robot.instructionsV2.isEmpty() && robot.robotState == RobotState.BORING) {
                                     Node robotNode = new Node(robot.x, robot.y);
                                     Node goodNode = new Node(good.x, good.y);
 //                                Node goodNode = new Node(73,49);
@@ -135,11 +136,11 @@ public class TestOperator implements Operator {
                                     aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
                                     // 将A* 里面的指令copy到机器人指令队列
                                     while (!aStar.instructions.isEmpty()) {
-                                        robot.instructionsV2.add(aStar.instructions.pop());
+                                        robot.instructionsV2.addLast(aStar.instructions.pop());
                                     }
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
-                                    robot.instructionsV2.add(new Coord(-1, -1));
-                                    robot.state = 2;
+                                    robot.instructionsV2.addLast(new Coord(-1, -1));
+                                    robot.robotState = RobotState.FINDING_GOOD;
                                 }
                             }
                         }
@@ -166,117 +167,51 @@ public class TestOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(10);
+        Thread.sleep(5);
         // 1. 机器人指令处理
+        List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
             try {
+                boolean needReleaseLock = false;
                 locks[i].lock();
                 Robot robot = robots.get(i);
-                if (robot.state >= 1 && robot.status == 1) {
-                    if (robot.state == 1) {
-                        // 空闲状态 等待指令状态中
-                    } else if (robot.state == 2 && !robot.instructionsV2.isEmpty()) {
-                        // 取货中 取出自己的指令 如果有性价比更高的货物，则更改目标货物 没加这个，24w5
-                        // changeTargetGoodByAstar(i, robot);
-                        // -.- 默认第一帧不锁吧
-                        Queue<Coord> queue = robot.instructionsV2;
-                        // 1. 先看看下一步有没有机器人在了
-                        Coord next = queue.peek();
-                        if (collision[next.x][next.y] != -1) {
-                            // 存在冲突
-                            // 判断对方状态
-                            int collisionRobotId = collision[next.x][next.y];
-                            if (robots.get(collisionRobotId).state == 3) {
-                                // 不动 优先前往泊位的机器人让路
-                            } else if (robots.get(collisionRobotId).state == 2) {
-                                // 优先选择垂直于本次移动方向的做一次让路并且添加复位指令
-                                RobotActionCode moveDirection = robot.getMoveDirection(next);
-                                switch (moveDirection) {
-                                    case UP:
-                                    case DOWN:
-                                        // 寻找左右的点是否可以移动 1. 为陆地 无障碍 2. 无其他机器人
-                                        if (map[robot.x][robot.y + 1] == '.' && collision[robot.x][robot.y + 1] == -1) {
-                                            // 锁定右格子
-                                            collision[robot.x][robot.y + 1] = robot.id;
-                                            // 右移动
-                                            Instruction.right(robot.id);
-                                            // 解除原格子
-                                            collision[robot.x][robot.y] = -1;
-                                            // 往指令队列中添加原来位置
-                                            robot.instructionsV2.add(new Coord(robot.x, robot.y));
-                                        } else if (map[robot.x][robot.y - 1] == '.' && collision[robot.x][robot.y - 1] == -1) {
-                                            // 锁定左格子
-                                            collision[robot.x][robot.y - 1] = robot.id;
-                                            // 左移动
-                                            Instruction.left(robot.id);
-                                            // 解除原格子
-                                            collision[robot.x][robot.y] = -1;
-                                            // 往指令队列中添加原来位置
-                                            robot.instructionsV2.add(new Coord(robot.x, robot.y));
-                                        }
-                                        break;
-                                    case LEFT:
-                                    case RIGHT:
-                                        if (map[robot.x + 1][robot.y] == '.' && collision[robot.x + 1][robot.y] == -1) {
-                                            // 锁定下格子
-                                            collision[robot.x + 1][robot.y] = robot.id;
-                                            // 下移动
-                                            Instruction.down(robot.id);
-                                            // 解除原格子
-                                            collision[robot.x][robot.y] = -1;
-                                            // 往指令队列中添加原来位置
-                                            robot.instructionsV2.add(new Coord(robot.x, robot.y));
-                                        } else if (map[robot.x - 1][robot.y] == '.' && collision[robot.x - 1][robot.y] == -1) {
-                                            // 锁定上格子
-                                            collision[robot.x-1][robot.y] = robot.id;
-                                            // 上移动
-                                            Instruction.up(robot.id);
-                                            // 解除原格子
-                                            collision[robot.x][robot.y] = -1;
-                                            // 往指令队列中添加原来位置
-                                            robot.instructionsV2.add(new Coord(robot.x, robot.y));
-                                        }
-                                        break;
-                                }
-                            }
-                        } else {
-                            // 不存在冲突
-                            // 锁定下一步格子
-                            collision[next.x][next.y] = robot.id;
-                            // 移动
-                            System.out.println(robot.getMoveInstruction(next));
-                            queue.poll();
-                            // 解锁当前格子
-                            collision[robot.x][robot.y] = 0;
-                        }
-                    } else if (robot.state == 2 && robot.instructionsV2.isEmpty()) {
+                if ((robot.robotState == RobotState.BORING || robot.robotState == RobotState.FINDING_GOOD || robot.robotState == RobotState.GO_BERTH) && robot.status == 1) {
+                    if (robot.robotState == RobotState.BORING) {
+                        // 空闲状态 等待指令状态中 状态变更由指令计算线程完成
+                    } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
+                        needReleaseLock = robot.move(robot.instructionsV2.getFirst(), collision, map);
+                    } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
-                        robot.state = 3;
-                    } else if (robot.state == 3) {
+                        robot.robotState = RobotState.GO_BERTH;
+                    } else if (robot.robotState == RobotState.GO_BERTH) {
                         // 取出当前节点的路径信息
                         PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                         if (message == null) {
                             // 到达泊位 变更为空闲状态
 //                        Instruction.pullGood(i);
-                            robot.state = 1;
+                            robot.robotState = RobotState.BORING;
                         } else {
                             switch (message.actionCode) {
                                 case UP:
-                                    Instruction.up(i);
+                                    robot.move(new Coord(robot.x - 1, robot.y), collision, map);
                                     break;
                                 case RIGHT:
-                                    Instruction.right(i);
+                                    robot.move(new Coord(robot.x, robot.y + 1), collision, map);
+//                                    Instruction.right(i);
                                     break;
                                 case DOWN:
-                                    Instruction.down(i);
+                                    robot.move(new Coord(robot.x + 1, robot.y), collision, map);
+//                                    Instruction.down(i);
                                     break;
                                 case LEFT:
-                                    Instruction.left(i);
+                                    robot.move(new Coord(robot.x, robot.y - 1), collision, map);
+//                                    Instruction.left(i);
                                     break;
                                 case PULL:
                                     Instruction.pullGood(i);
-                                    berths.get(i).goodNums++;
-                                    robot.state = 1;
+                                    robot.instructionsV2.clear();
+                                    berths.get(message.berthId).goodNums++;
+                                    robot.robotState = RobotState.BORING;
                                     break;
                             }
                         }
@@ -284,7 +219,7 @@ public class TestOperator implements Operator {
                 } else {
                     // 异常状态 清空所有状态信息重新计算
                     robot.instructionsV2.clear();
-                    robot.state = 1;
+                    robot.robotState = RobotState.BORING;
                 }
 
             } catch (Exception e) {
@@ -412,7 +347,7 @@ public class TestOperator implements Operator {
         // 4. 读取结束
         // 5. 先把机器人初始化了先
         for (int i = 0; i < ROBOT_NUM; i++) {
-            robots.add(new Robot(i));
+            robots.add(new Robot(i, RobotState.BORING));
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {
@@ -518,7 +453,7 @@ public class TestOperator implements Operator {
                     Berth berth = berths.get(j);
                     int condition = berth2Boat[j];
                     // 该泊位此时无船处理
-                    if (condition == -1) {
+                    if (condition == -1 && RebalanceFloodFill.areas[j] != 0) {
                         if (berth.goodNums >= max) {
                             max = berth.goodNums;
                             target = berth.id;
@@ -561,6 +496,7 @@ public class TestOperator implements Operator {
             boat2Berth[i] = target;
             boats.get(i).state = 1;
         }
+
 
     }
 }
