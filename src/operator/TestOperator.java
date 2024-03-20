@@ -115,7 +115,7 @@ public class TestOperator implements Operator {
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
                                     // 货物1000帧消失 预留200帧机器人行走时间
-                                    if (goodTemp.frameId + 1000 - 200 > currentFrameId) {
+                                    if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
                                         good = goodTemp;
                                         // 锁定后超时
                                         goodList.remove(goodTemp);
@@ -167,17 +167,19 @@ public class TestOperator implements Operator {
 
     void operate() throws InterruptedException {
 
-        Thread.sleep(5);
+        Thread.sleep(10);
         // 1. 机器人指令处理
+        List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
             try {
+                boolean needReleaseLock = false;
                 locks[i].lock();
                 Robot robot = robots.get(i);
-                if ((robot.robotState ==RobotState.BORING || robot.robotState ==RobotState.FINDING_GOOD || robot.robotState ==RobotState.GO_BERTH)&& robot.status == 1) {
+                if ((robot.robotState == RobotState.BORING || robot.robotState == RobotState.FINDING_GOOD || robot.robotState == RobotState.GO_BERTH) && robot.status == 1) {
                     if (robot.robotState == RobotState.BORING) {
-                        // 空闲状态 等待指令状态中
+                        // 空闲状态 等待指令状态中 状态变更由指令计算线程完成
                     } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
-                        robot.move(robot.instructionsV2.getFirst(),collision);
+                        needReleaseLock = robot.move(robot.instructionsV2.getFirst(), collision, map);
                     } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
                         robot.robotState = RobotState.GO_BERTH;
@@ -191,18 +193,18 @@ public class TestOperator implements Operator {
                         } else {
                             switch (message.actionCode) {
                                 case UP:
-                                    robot.doMove(new Coord(robot.x-1,robot.y),collision);
+                                    robot.move(new Coord(robot.x - 1, robot.y), collision, map);
                                     break;
                                 case RIGHT:
-                                    robot.doMove(new Coord(robot.x,robot.y+1),collision);
+                                    robot.move(new Coord(robot.x, robot.y + 1), collision, map);
 //                                    Instruction.right(i);
                                     break;
                                 case DOWN:
-                                    robot.doMove(new Coord(robot.x+1,robot.y),collision);
+                                    robot.move(new Coord(robot.x + 1, robot.y), collision, map);
 //                                    Instruction.down(i);
                                     break;
                                 case LEFT:
-                                    robot.doMove(new Coord(robot.x,robot.y-1),collision);
+                                    robot.move(new Coord(robot.x, robot.y - 1), collision, map);
 //                                    Instruction.left(i);
                                     break;
                                 case PULL:
@@ -217,7 +219,7 @@ public class TestOperator implements Operator {
                 } else {
                     // 异常状态 清空所有状态信息重新计算
                     robot.instructionsV2.clear();
-                    robot.robotState= RobotState.BORING;
+                    robot.robotState = RobotState.BORING;
                 }
 
             } catch (Exception e) {
@@ -448,7 +450,7 @@ public class TestOperator implements Operator {
                     Berth berth = berths.get(j);
                     int condition = berth2Boat[j];
                     // 该泊位此时无船处理
-                    if (condition == -1) {
+                    if (condition == -1 && RebalanceFloodFill.areas[j] != 0) {
                         if (berth.goodNums >= max) {
                             max = berth.goodNums;
                             target = berth.id;
@@ -491,6 +493,7 @@ public class TestOperator implements Operator {
             boat2Berth[i] = target;
             boats.get(i).state = 1;
         }
+
 
     }
 }

@@ -55,7 +55,7 @@ public class Robot {
      */
     public Deque<Coord> instructionsV2 = new ArrayDeque<>();
 
-    public Robot(int id,RobotState robotState) {
+    public Robot(int id, RobotState robotState) {
         this.id = id;
         this.robotState = robotState;
     }
@@ -129,25 +129,27 @@ public class Robot {
         throw new Exception(String.format(" robot:[%d] 移动方向计算错误!!!   机器人坐标(%d,%d) , 下一步坐标(%d,%d)", this.id, this.x, this.y, next.x, next.y));
     }
 
-    public boolean move(Coord next, int[][] conflictMap) throws Exception {
-        if (next.x == -1 || next.y == -1){
+    public boolean move(Coord next, int[][] conflictMap, char[][] map) throws Exception {
+        if (next.x == -1 || next.y == -1) {
             Instruction.getGood(this.id);
             this.instructionsV2.removeFirst();
             return true;
         }
 
-        if (doMove(next, conflictMap)) {
-            // 成功就删除
-            this.instructionsV2.removeFirst();
+        if (doMove(next, conflictMap, map)) {
+            if (this.robotState == RobotState.FINDING_GOOD) {
+                // 成功就删除
+                this.instructionsV2.removeFirst();
+            }
             return true;
         } else {
-            return handleConflict(getMoveDirection(next), conflictMap);
+            return handleConflict(getMoveDirection(next), conflictMap, map);
         }
     }
 
-    public boolean doMove(Coord next, int[][] conflictMap) throws Exception {
-        if(next.equals(new Coord(this.x,this.y))) return true;
-        if (!isConflict(next, conflictMap)) {
+    public boolean doMove(Coord next, int[][] conflictMap, char[][] map) throws Exception {
+        if (next.equals(new Coord(this.x, this.y))) return true;
+        if (!isConflict(next, conflictMap, map)) {
             // 解锁
             conflictMap[this.x][this.y] = -1;
             // 移动
@@ -159,14 +161,17 @@ public class Robot {
         return false;
     }
 
-    /** 2
+    /**
+     * 2
      * 判断是否产生冲突
      *
      * @param coord       next坐标
      * @param conflictMap 冲突地图
      */
-    private boolean isConflict(Coord coord, int[][] conflictMap) {
-        return conflictMap[coord.x][coord.y] != -1;
+    private boolean isConflict(Coord coord, int[][] conflictMap, char[][] map) {
+        if (conflictMap[coord.x][coord.y] != -1) return true;
+        if (map[coord.x][coord.y] != '.' && map[coord.x][coord.y] != 'B' && map[coord.x][coord.y] != 'A') return true;
+        return false;
     }
 
     /**
@@ -174,59 +179,26 @@ public class Robot {
      *
      * @param action 发生冲突的指令行为
      */
-    private boolean handleConflict(RobotActionCode action, int[][] conflictMap) throws Exception {
+    private boolean handleConflict(RobotActionCode action, int[][] conflictMap, char[][] map) throws Exception {
         boolean result = false;
-        switch (this.robotState) {
-            case BORING:
+        switch (action) {
+            case UP:
+            case DOWN:
+                result = doMove(new Coord(this.x, this.y + 1), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x + 1, this.y), conflictMap, map);
                 break;
-            case FINDING_GOOD:
-                // 去取货
-                switch (action) {
-                    case UP:
-                    case DOWN:
-                        result = doMove(new Coord(this.x, this.y + 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x + 1, this.y), conflictMap);
-                        if (result){
-                            // 添加回去的指令
-                            this.instructionsV2.addFirst(new Coord(this.x,this.y));
-                        }
-                        break;
-                    case LEFT:
-                    case RIGHT:
-                        result = doMove(new Coord(this.x + 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y + 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
-                        if (result){
-                            // 添加回去的指令
-                            this.instructionsV2.addFirst(new Coord(this.x,this.y));
-                        }
-                        break;
-                }
-
-
+            case LEFT:
+            case RIGHT:
+                result = doMove(new Coord(this.x + 1, this.y), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x, this.y + 1), conflictMap, map);
+                if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap, map);
                 break;
-            // 前往泊位状态时冲突 不需要维护指令队列
-            case GO_BERTH:
-                switch (action) {
-                    case UP:
-                    case DOWN:
-                        result = doMove(new Coord(this.x, this.y + 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x + 1, this.y), conflictMap);
-                        break;
-                    case LEFT:
-                    case RIGHT:
-                        result = doMove(new Coord(this.x + 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y + 1), conflictMap);
-                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
-                        break;
-                }
-                break;
+        }
+        if (this.robotState == RobotState.FINDING_GOOD) {
+            this.instructionsV2.addFirst(new Coord(this.x, this.y));
         }
         return result;
     }
