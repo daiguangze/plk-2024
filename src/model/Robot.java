@@ -54,8 +54,9 @@ public class Robot {
      */
     public Queue<Coord> instructionsV2 = new ArrayDeque<>();
 
-    public Robot(int id) {
+    public Robot(int id,RobotState robotState) {
         this.id = id;
+        this.robotState = robotState;
     }
 
     /**
@@ -128,10 +129,17 @@ public class Robot {
     }
 
     public boolean move(Coord next, int[][] conflictMap) throws Exception {
-        if (doMove(next,conflictMap)) {
+        if (next.x == -1 || next.y == -1){
+            Instruction.getGood(this.id);
+            this.instructionsV2.poll();
             return true;
-        }else{
-            return handleConflict(getMoveDirection(next),conflictMap);
+        }
+        if (doMove(next, conflictMap)) {
+            // 成功就删除
+            this.instructionsV2.poll();
+            return true;
+        } else {
+            return handleConflict(getMoveDirection(next), conflictMap);
         }
     }
 
@@ -139,7 +147,7 @@ public class Robot {
         if (!isConflict(next, conflictMap)) {
             // 解锁
             conflictMap[this.x][this.y] = -1;
-            //移动
+            // 移动
             System.out.println(getMoveInstruction(next));
             // 锁定
             conflictMap[next.x][next.y] = this.id;
@@ -148,7 +156,7 @@ public class Robot {
         return false;
     }
 
-    /**
+    /** 2
      * 判断是否产生冲突
      *
      * @param coord       next坐标
@@ -164,24 +172,33 @@ public class Robot {
      * @param action 发生冲突的指令行为
      */
     private boolean handleConflict(RobotActionCode action, int[][] conflictMap) throws Exception {
-        switch (this.robotState){
+        boolean result = false;
+        switch (this.robotState) {
             case BORING:
                 break;
             case FINDING_GOOD:
+                // 去取货
                 break;
             // 前往泊位状态时冲突 不需要维护指令队列
             case GO_BERTH:
-                switch (action){
+                switch (action) {
                     case UP:
                     case DOWN:
-                        doMove(new Coord(this.x,this.y+1),conflictMap);
+                        result = doMove(new Coord(this.x, this.y + 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x + 1, this.y), conflictMap);
                         break;
                     case LEFT:
                     case RIGHT:
+                        result = doMove(new Coord(this.x + 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y + 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
                         break;
                 }
                 break;
         }
-        return false;
+        return result;
     }
 }
