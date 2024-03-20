@@ -136,10 +136,10 @@ public class TestOperator implements Operator {
                                     aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
                                     // 将A* 里面的指令copy到机器人指令队列
                                     while (!aStar.instructions.isEmpty()) {
-                                        robot.instructionsV2.add(aStar.instructions.pop());
+                                        robot.instructionsV2.addLast(aStar.instructions.pop());
                                     }
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
-                                    robot.instructionsV2.add(new Coord(-1, -1));
+                                    robot.instructionsV2.addLast(new Coord(-1, -1));
                                     robot.robotState = RobotState.FINDING_GOOD;
                                 }
                             }
@@ -167,6 +167,7 @@ public class TestOperator implements Operator {
 
     void operate() throws InterruptedException {
 
+        Thread.sleep(5);
         // 1. 机器人指令处理
         for (int i = 0; i < ROBOT_NUM; i++) {
             try {
@@ -176,7 +177,7 @@ public class TestOperator implements Operator {
                     if (robot.robotState == RobotState.BORING) {
                         // 空闲状态 等待指令状态中
                     } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
-                        robot.move(robot.instructionsV2.peek(),collision);
+                        robot.move(robot.instructionsV2.getFirst(),collision);
                     } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
                         robot.robotState = RobotState.GO_BERTH;
@@ -190,19 +191,23 @@ public class TestOperator implements Operator {
                         } else {
                             switch (message.actionCode) {
                                 case UP:
-                                    Instruction.up(i);
+                                    robot.doMove(new Coord(robot.x-1,robot.y),collision);
                                     break;
                                 case RIGHT:
-                                    Instruction.right(i);
+                                    robot.doMove(new Coord(robot.x,robot.y+1),collision);
+//                                    Instruction.right(i);
                                     break;
                                 case DOWN:
-                                    Instruction.down(i);
+                                    robot.doMove(new Coord(robot.x+1,robot.y),collision);
+//                                    Instruction.down(i);
                                     break;
                                 case LEFT:
-                                    Instruction.left(i);
+                                    robot.doMove(new Coord(robot.x,robot.y-1),collision);
+//                                    Instruction.left(i);
                                     break;
                                 case PULL:
                                     Instruction.pullGood(i);
+                                    robot.instructionsV2.clear();
                                     berths.get(i).goodNums++;
                                     robot.robotState = RobotState.BORING;
                                     break;

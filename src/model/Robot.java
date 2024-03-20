@@ -8,6 +8,7 @@ import org.omg.CORBA.PUBLIC_MEMBER;
 import util.astar.Coord;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Queue;
 
@@ -52,7 +53,7 @@ public class Robot {
     /**
      * 第二版指令队列, 暂时为了不和第一版冲突做V2处理 暂时仅再TestOperator中使用
      */
-    public Queue<Coord> instructionsV2 = new ArrayDeque<>();
+    public Deque<Coord> instructionsV2 = new ArrayDeque<>();
 
     public Robot(int id,RobotState robotState) {
         this.id = id;
@@ -131,12 +132,13 @@ public class Robot {
     public boolean move(Coord next, int[][] conflictMap) throws Exception {
         if (next.x == -1 || next.y == -1){
             Instruction.getGood(this.id);
-            this.instructionsV2.poll();
+            this.instructionsV2.removeFirst();
             return true;
         }
+
         if (doMove(next, conflictMap)) {
             // 成功就删除
-            this.instructionsV2.poll();
+            this.instructionsV2.removeFirst();
             return true;
         } else {
             return handleConflict(getMoveDirection(next), conflictMap);
@@ -179,6 +181,32 @@ public class Robot {
                 break;
             case FINDING_GOOD:
                 // 去取货
+                switch (action) {
+                    case UP:
+                    case DOWN:
+                        result = doMove(new Coord(this.x, this.y + 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x + 1, this.y), conflictMap);
+                        if (result){
+                            // 添加回去的指令
+                            this.instructionsV2.addFirst(new Coord(this.x,this.y));
+                        }
+                        break;
+                    case LEFT:
+                    case RIGHT:
+                        result = doMove(new Coord(this.x + 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x - 1, this.y), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y + 1), conflictMap);
+                        if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap);
+                        if (result){
+                            // 添加回去的指令
+                            this.instructionsV2.addFirst(new Coord(this.x,this.y));
+                        }
+                        break;
+                }
+
+
                 break;
             // 前往泊位状态时冲突 不需要维护指令队列
             case GO_BERTH:
