@@ -306,6 +306,11 @@ public class FinalOperator implements Operator {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
             }
         }
+//        for(int i =0; i< BERTH_NUM; i++){
+//            Berth berth = berths.get(i);
+//            System.out.println("berthID: " + i + "    berth good Nums: " + berth.goodNums);
+//        }
+
     }
 
 
