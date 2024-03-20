@@ -58,18 +58,18 @@ public class FloodFill {
             queues[i].addFirst(new MapNode(x+3,y+3));
             queues[i].addFirst(new MapNode(x+3,y+1));
             queues[i].addFirst(new MapNode(x+3,y+2));
-            ans.put(new MapNode(x,y),new PointMessage(i,5));
-            ans.put(new MapNode(x,y+1),new PointMessage(i,5));
-            ans.put(new MapNode(x,y+2),new PointMessage(i,5));
-            ans.put(new MapNode(x,y+3),new PointMessage(i,5));
-            ans.put(new MapNode(x+1,y),new PointMessage(i,5));
-            ans.put(new MapNode(x+2,y),new PointMessage(i,5));
-            ans.put(new MapNode(x+3,y),new PointMessage(i,5));
-            ans.put(new MapNode(x+1,y+3),new PointMessage(i,5));
-            ans.put(new MapNode(x+2,y+3),new PointMessage(i,5));
-            ans.put(new MapNode(x+3,y+3),new PointMessage(i,5));
-            ans.put(new MapNode(x+3,y+1),new PointMessage(i,5));
-            ans.put(new MapNode(x+3,y+2),new PointMessage(i,5));
+            ans.put(new MapNode(x,y),new PointMessage(i,5,0));
+            ans.put(new MapNode(x,y+1),new PointMessage(i,5,0));
+            ans.put(new MapNode(x,y+2),new PointMessage(i,5,0));
+            ans.put(new MapNode(x,y+3),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+1,y),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+2,y),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+3,y),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+1,y+3),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+2,y+3),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+3,y+3),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+3,y+1),new PointMessage(i,5,0));
+            ans.put(new MapNode(x+3,y+2),new PointMessage(i,5,0));
         }
 
         long start = System.currentTimeMillis();
@@ -94,29 +94,34 @@ public class FloodFill {
     private static void addFrontiers(char[][] maps, int[][] visited, MapNode mapNode,ArrayDeque<MapNode> queue,int i,Map<MapNode,PointMessage> ans) {
         int x =  mapNode.x;
         int y = mapNode.y;
+        PointMessage message = ans.getOrDefault(new MapNode(x, y), null);
+        int dist = Integer.MAX_VALUE - 400;  // 减400防止溢出
+        if (message != null){
+            dist = message.DistToBerth;
+        }
         // 下   , 路径指向上
         if (isValid(maps,visited, x+1, y)){
             visited[x+1][y] = i;
             queue.addFirst(new MapNode(x+1,y));
-            ans.put(new MapNode(x+1,y),new PointMessage(i,1));
+            ans.put(new MapNode(x+1,y),new PointMessage(i,1, dist + 1));
         }
         // 右
         if (isValid(maps,visited, x, y+1)){
             visited[x][y+1] = i;
             queue.addFirst(new MapNode(x,y+1));
-            ans.put(new MapNode(x,y+1),new PointMessage(i,4));
+            ans.put(new MapNode(x,y+1),new PointMessage(i,4, dist + 1));
         }
         // 上
         if (isValid(maps,visited, x-1, y)){
             visited[x-1][y] = i;
             queue.addFirst(new MapNode(x-1,y));
-            ans.put(new MapNode(x-1,y),new PointMessage(i,3));
+            ans.put(new MapNode(x-1,y),new PointMessage(i,3, dist + 1));
         }
         // 左
         if (isValid(maps,visited, x, y-1)){
             visited[x][y-1] = i;
             queue.addFirst(new MapNode(x,y-1));
-            ans.put(new MapNode(x,y-1),new PointMessage(i,2));
+            ans.put(new MapNode(x,y-1),new PointMessage(i,2, dist + 1));
         }
 
 

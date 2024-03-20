@@ -1,8 +1,8 @@
 package util.astar;
 
 public class Coord {
-    int x;
-    int y;
+    public int x;
+    public int y;
 
     public Coord(int x, int y) {
         this.x = x;
@@ -18,5 +18,10 @@ public class Coord {
         Coord node = (Coord) obj;
         // 检查 x y
         return this.x == node.x && this.y == node.y;
+    }
+
+    @Override
+    public int hashCode() {
+        return x+y;
     }
 }
