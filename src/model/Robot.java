@@ -1,10 +1,16 @@
 package model;
 
+import enums.RobotActionCode;
+import instruction.Instruction;
+import util.astar.Coord;
+
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 
 public class Robot {
+
+    public int id;
 
     public int x;
 
@@ -38,6 +44,14 @@ public class Robot {
      */
     public Queue<String> instructions = new ArrayDeque<>();
 
+    /**
+     * 第二版指令队列, 暂时为了不和第一版冲突做V2处理 暂时仅再TestOperator中使用
+     */
+    public Queue<Coord> instructionsV2 = new ArrayDeque<>();
+
+    public Robot(int id) {
+        this.id = id;
+    }
 
     /**
      *  通过欧式距离找出,距离该机器人最近的节点
@@ -62,5 +76,46 @@ public class Robot {
             }
         }
         return res;
+    }
+    public RobotActionCode getMoveDirection(Coord next) throws Exception {
+        if(this.y != next.y){
+            if (this.y > next.y){
+                //左移
+                return RobotActionCode.LEFT;
+            }else{
+                //右移
+                return RobotActionCode.RIGHT;
+            }
+        }else if(this.x != next.x){
+            if (this.x > next.x){
+                // 上移
+                return RobotActionCode.UP;
+            }else {
+                // 下移
+                return RobotActionCode.DOWN;
+            }
+        }
+        throw new Exception(String.format(" robot:[%d] 获取移动方向失败!!!   机器人坐标(%d,%d) , 下一步坐标(%d,%d)", this.id,this.x,this.y,next.x,next.y));
+    }
+    public String getMoveInstruction(Coord next) throws Exception {
+        // 通过计算 robot坐标与 next坐标 判断是上下左右移动
+        if(this.y != next.y){
+            if (this.y > next.y){
+                //左移
+                return Instruction.leftString(this.id);
+            }else{
+                //右移
+                return Instruction.rightString(this.id);
+            }
+        }else if(this.x != next.x){
+            if (this.x > next.x){
+                // 上移
+                return Instruction.upString(this.id);
+            }else {
+                // 下移
+                return Instruction.downString(this.id);
+            }
+        }
+        throw new Exception(String.format(" robot:[%d] 移动方向计算错误!!!   机器人坐标(%d,%d) , 下一步坐标(%d,%d)", this.id,this.x,this.y,next.x,next.y));
     }
 }
