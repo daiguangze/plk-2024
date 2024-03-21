@@ -174,73 +174,75 @@ public class RebalanceFloodFill {
 
 
     /**
-     * 最后3000帧的分配
+     * 单个节点染色
      */
-    public static Map<MapNode, PointMessageV2> getEndPointMessage(char[][] maps, List<Berth> berths) {
-        Map<MapNode, PointMessageV2> ans = new HashMap<>();
-        // 0. 寻找5个区域最大的 TODO
+    public static Map<MapNode, PointMessageV2>[] getEndPointMessage(char[][] maps, List<Berth> berths) {
 
-        // 1. 初始化visited
-        int[][] visited = new int[maps.length][maps.length];
-        for (int i = 0; i < visited.length; i++) {
-            for (int j = 0; j < visited.length; j++) visited[i][j] = -1;
-        }
-        // 2. 初始化队列
-        ArrayDeque<MapNode>[] queues = new ArrayDeque[berths.size()];
-        for (int i = 0; i < queues.length; i++) {
-            queues[i] = new ArrayDeque<>();
-        }
-        // 3.放入初始节点
-        for (int i = 0; i < 10; i++) {
-            // 忽略的节点不做操作
-            if (ignoreIds.contains(i)) continue;
-            int x = berths.get(i).x;
-            int y = berths.get(i).y;
-            // 泊位4*4 题目给你的为左上角数据.
-            queues[i].addFirst(new MapNode(x, y));
-            queues[i].addFirst(new MapNode(x, y + 1));
-            queues[i].addFirst(new MapNode(x, y + 2));
-            queues[i].addFirst(new MapNode(x, y + 3));
-            queues[i].addFirst(new MapNode(x + 1, y));
-            queues[i].addFirst(new MapNode(x + 2, y));
-            queues[i].addFirst(new MapNode(x + 3, y));
-            queues[i].addFirst(new MapNode(x + 1, y + 3));
-            queues[i].addFirst(new MapNode(x + 2, y + 3));
-            queues[i].addFirst(new MapNode(x + 3, y + 3));
-            queues[i].addFirst(new MapNode(x + 3, y + 1));
-            queues[i].addFirst(new MapNode(x + 3, y + 2));
-            ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-            areas[i] += 12;
+        Map<MapNode, PointMessageV2>[] ansAll = new Map[10];
+        for (Map<MapNode, PointMessageV2> a : ansAll){
+            a = new HashMap<>();
         }
 
-        // 4. 广搜
-        while (!isEnd(queues)) {
-            for (int i = 0; i < berths.size(); i++) {
-                ArrayDeque<MapNode> queue = queues[i];
-                // 取出全部节点
-                if (!queue.isEmpty()) {
-                    List<MapNode> mapNodes = new ArrayList<>();
-                    while (!queue.isEmpty()) mapNodes.add(queue.removeFirst());
-                    for (MapNode mapNode : mapNodes) {
-                        addFrontiers(maps, visited, mapNode, queue, i, ans);
+
+        for(int z = 0 ; z < 10 ; z ++){
+            Map<MapNode, PointMessageV2> ans = new HashMap<>();
+            // 1. 初始化visited
+            int[][] visited = new int[maps.length][maps.length];
+            for (int i = 0; i < visited.length; i++) {
+                for (int j = 0; j < visited.length; j++) visited[i][j] = -1;
+            }
+            // 2. 初始化队列
+            ArrayDeque<MapNode> queue = new ArrayDeque();
+            // 3.放入初始节点
+            for (int i = 0; i < 1; i++) {
+                // 忽略的节点不做操作
+                if (ignoreIds.contains(i)) continue;
+                int x = berths.get(i).x;
+                int y = berths.get(i).y;
+                // 泊位4*4 题目给你的为左上角数据.
+                queue.addFirst(new MapNode(x, y));
+                queue.addFirst(new MapNode(x, y + 1));
+                queue.addFirst(new MapNode(x, y + 2));
+                queue.addFirst(new MapNode(x, y + 3));
+                queue.addFirst(new MapNode(x + 1, y));
+                queue.addFirst(new MapNode(x + 2, y));
+                queue.addFirst(new MapNode(x + 3, y));
+                queue.addFirst(new MapNode(x + 1, y + 3));
+                queue.addFirst(new MapNode(x + 2, y + 3));
+                queue.addFirst(new MapNode(x + 3, y + 3));
+                queue.addFirst(new MapNode(x + 3, y + 1));
+                queue.addFirst(new MapNode(x + 3, y + 2));
+                ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                areas[i] += 12;
+            }
+
+            // 4. 广搜
+            while (!queue.isEmpty()) {
+                for (int i = 0; i < berths.size(); i++) {
+                    // 取出全部节点
+                    if (!queue.isEmpty()) {
+                        List<MapNode> mapNodes = new ArrayList<>();
+                        while (!queue.isEmpty()) mapNodes.add(queue.removeFirst());
+                        for (MapNode mapNode : mapNodes) {
+                            addFrontiers(maps, visited, mapNode, queue, i, ans);
+                        }
                     }
                 }
             }
+            ansAll[z] = ans;
         }
-
-
-        return ans;
+        return ansAll;
     }
 
 
