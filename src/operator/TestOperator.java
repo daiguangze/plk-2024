@@ -317,6 +317,11 @@ public class TestOperator implements Operator {
             } catch (Exception e) {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
             }
+//            if(i % 2000 == 0){
+//                for(int j = 0; j< BERTH_NUM; j++){
+//                    System.out.println("BerthID:" + j + "  goodsNums:" + berths.get(j).goodNums + "   totalPrice: " + berths.get(j).totalPrice);
+//                }
+//            }
         }
     }
 
@@ -447,32 +452,6 @@ public class TestOperator implements Operator {
         int target = -1;
         Boat boat = boats.get(i);
 
-        /*switch (situation) {
-            case 0: // 在虚拟点，优先找到一个货物最大的泊位
-                int max = 0;
-                for (int j = 0; j < BERTH_NUM; j++) {
-                    Berth berth = berths.get(j);
-                    int condition = berth2Boat[j];
-                    // 该泊位此时无船处理
-                    if (condition == -1 && RebalanceFloodFill.areas[j] != 0) {
-                        if (berth.totalPrice >= max) {
-                            max = berth.goodNums;
-                            target = berth.id;
-                        }
-                    }
-                }
-                break;
-            case 1: // 在泊位处，等到某个泊位处的货物数量超过了容积的3/4，即动身前往
-                int max = 0;
-                for (int j = 0; j < BERTH_NUM; j++) {
-                    Berth berth = berths.get(j);
-                    if (berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.75 && berth2Boat[j] == -1) {
-                        target = berth.id;
-                    }
-                }
-                break;
-        }*/
-
         int max = 0;
         for (int j = 0; j < BERTH_NUM; j++) {
             Berth berth = berths.get(j);
@@ -486,7 +465,7 @@ public class TestOperator implements Operator {
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
