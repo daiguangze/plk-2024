@@ -2,6 +2,7 @@ package com.huawei.codecraft;
 
 import operator.TestOperator;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 

@@ -38,6 +38,20 @@ public class Good {
         this.x = x;
         this.y = y;
         this.price = price;
+        costBenefitRatio = new double[10];
     }
-    Good(){}
+
+    Good() {
+    }
+
+    @Override
+    public int hashCode() {
+        return this.x + this.y;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Good good = (Good) obj;
+        return this.x == good.x && this.y == good.y;
+    }
 }
