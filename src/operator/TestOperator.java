@@ -18,6 +18,7 @@ public class TestOperator implements Operator {
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
+
     /**
      * 地图 固定 200 * 200
      */
@@ -86,7 +87,7 @@ public class TestOperator implements Operator {
     public TestOperator(Scanner in) {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
-            disGoodList.add(new CopyOnWriteArrayList<>());
+            //disGoodList.add(new CopyOnWriteArrayList<>());
             singleMapMessage[i] = new HashMap<>();
         }
         for (int i = 0; i < ROBOT_NUM; i++) {
@@ -120,7 +121,6 @@ public class TestOperator implements Operator {
                             while (!allGoods.isEmpty() && good == null) {
                                 Optional<Good> maxCostBenefitGood = allGoods.stream()
                                         .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
-
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
                                     // 货物1000帧消失 预留200帧机器人行走时间
@@ -395,16 +395,16 @@ public class TestOperator implements Operator {
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
+
             for(int z = 0 ; z < BERTH_NUM ;z ++){
                 PointMessageV2 message = singleMapMessage[z].getOrDefault(new MapNode(good.x, good.y), null);
                 if (message != null) {
                     good.frameId = this.currentFrameId;
                     good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
-                    disGoodList.get(message.berthId).add(good);
-                    allGoods.add(good);
+                    // disGoodList.get(message.berthId).add(good);
                 }
-
             }
+            allGoods.add(good);
 //            goods.add(good);
         }
 
