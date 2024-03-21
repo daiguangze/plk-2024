@@ -22,6 +22,16 @@ public class Berth {
      */
     public int goodNums;
 
+    /**
+     * 泊位此时价值总量
+     */
+    public int priceSum;
+
+    /**
+     * 平均
+     */
+    public int rate;
+
     public Berth() {
     }
 

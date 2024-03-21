@@ -317,6 +317,7 @@ public class TestOperator implements Operator {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
             }
         }
+        System.out.println(sum + " " + count);
     }
 
 
@@ -370,6 +371,9 @@ public class TestOperator implements Operator {
      * 第二行输入一个整数, 表示场上新增货物的数量 k [0,10]
      * 紧接着K行数据,每一行表示一个新增货物, 分别由如下所示数据构成
      */
+
+    public static int sum = 0;
+    public static int count = 0;
     private void read() {
         // 帧id
         this.currentFrameId = in.nextInt();
@@ -380,6 +384,9 @@ public class TestOperator implements Operator {
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
+            // debug信息记录
+            sum += good.price;
+            count ++;
             PointMessageV2 message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
             if (message != null) {
                 good.frameId = this.currentFrameId;
@@ -391,7 +398,7 @@ public class TestOperator implements Operator {
                         // 取距离泊位的路程距离
 //                        int distance =
 //                    }
-                good.costBenefitRatio = (double) good.price / message.DistToBerth;
+                good.costBenefitRatio = (double) good.price / (2 * message.DistToBerth);
 
                 disGoodList.get(message.berthId).add(good);
             }
