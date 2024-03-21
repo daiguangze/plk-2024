@@ -20,6 +20,8 @@ public class RebalanceFloodFill {
      */
     public static List<Integer> ignoreIds = new ArrayList<>();
 
+    public static int ignoreBerthNum = 0;
+
     /**
      * map 1 :  [1870, 1613, 987, 545, 283, 7119, 7246, 7526, 7843, 38]  sum = 35070 avg = 3507       1500
      * map 2 :  [5495, 2804, 1693, 1862, 176, 1340, 1604, 7024, 1079, 3326]  sum = 26403 avg = 2640    1500
@@ -40,7 +42,7 @@ public class RebalanceFloodFill {
     public static int[] allocation = new int[]{0,1,2,3,4,5,6,7,8,9};
 
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner in = new Scanner(new File(FloodFill.class.getResource("/").toString().substring(6) + "\\maps\\map5.txt"));
+        Scanner in = new Scanner(new File(FloodFill.class.getResource("/").toString().substring(6) + "\\maps\\map1.txt"));
         char[][] maps = new char[210][210];
         List<Berth> berths = new ArrayList<>();
         Map<MapNode, PointMessageV2> ans;
@@ -134,7 +136,7 @@ public class RebalanceFloodFill {
                         ignoreIds.add(i);
                     }
                 }
-                while (ignoreIds.size() < 0 ) {
+                while (ignoreIds.size() < ignoreBerthNum ) {
                     // 最少也会塞2个进去
                     int min = areas[0];
                     int index = 0;
@@ -283,8 +285,6 @@ public class RebalanceFloodFill {
             ans.put(new MapNode(x, y - 1), new PointMessageV2(i, RobotActionCode.RIGHT, dist + 1));
             areas[i] += 1;
         }
-
-
     }
 
     private static boolean isValid(char[][] maps, int[][] visited, int x, int y) {

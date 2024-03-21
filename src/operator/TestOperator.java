@@ -459,13 +459,13 @@ public class TestOperator implements Operator {
             switch (situation){
                 case 0:
                     // 优先找到一个能来回的泊位
-                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5){
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
@@ -473,20 +473,18 @@ public class TestOperator implements Operator {
             }
         }
 
-
-        if (target == -1) return;
-
-        // 没时间了！赶紧送货！！！
-        /*if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
-            Instruction.go(i);
-            if (boat2Berth[i] != -1) {
+        if (target == -1) {
+            if(boat2Berth[i] != -1)
+            {
+                if (MAX_FRAME - this.currentFrameId <= berths.get(boat2Berth[i]).transportTime * 2) return;
+                Instruction.go(i);
                 berth2Boat[boat2Berth[i]] = -1;
                 boat2Berth[i] = -1;
+                boat.state = 0;
             }
-            boats.get(i).state = 0;
-            return;
-        }*/
 
+            return;
+        }
 
         // 前往该泊位
         Instruction.ship(i, target);
