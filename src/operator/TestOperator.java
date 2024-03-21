@@ -18,6 +18,7 @@ public class TestOperator implements Operator {
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
+
     /**
      * 地图 固定 200 * 200
      */
@@ -37,6 +38,12 @@ public class TestOperator implements Operator {
      * 货物
      */
     List<CopyOnWriteArrayList<Good>> disGoodList = new CopyOnWriteArrayList<>();
+
+
+    /**
+     * 所有货物
+     */
+    volatile CopyOnWriteArrayList<Good> allGoods = new CopyOnWriteArrayList<>();
     /**
      * 机器人
      */
@@ -62,6 +69,8 @@ public class TestOperator implements Operator {
      */
     Map<MapNode, PointMessageV2> mapMessage;
 
+    Map<MapNode,PointMessageV2> singleMapMessage[] = new Map[10];
+
     /**
      * 碰撞检测地图
      */
@@ -78,7 +87,8 @@ public class TestOperator implements Operator {
     public TestOperator(Scanner in) {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
-            disGoodList.add(new CopyOnWriteArrayList<>());
+            //disGoodList.add(new CopyOnWriteArrayList<>());
+            singleMapMessage[i] = new HashMap<>();
         }
         for (int i = 0; i < ROBOT_NUM; i++) {
             locks[i] = new ReentrantLock();
@@ -105,26 +115,30 @@ public class TestOperator implements Operator {
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         locks[i].lock();
                         Robot robot = robots.get(i);
-                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
-                        Berth berth = berths.get(i);
-                        if (!goodList.isEmpty() && robot.robotState == RobotState.BORING) {
+//                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
+                        if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
-                            while (!goodList.isEmpty() && good == null) {
-                                Optional<Good> maxCostBenefitGood = goodList.stream()
-                                        .max(Comparator.comparingDouble(g -> g.costBenefitRatio));
+                            while (!allGoods.isEmpty() && good == null) {
+                                Optional<Good> maxCostBenefitGood = allGoods.stream()
+                                        .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
                                     // 货物1000帧消失 预留200帧机器人行走时间
                                     if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
                                         good = goodTemp;
                                         // 锁定后超时
-                                        goodList.remove(goodTemp);
+                                         if (!allGoods.remove(goodTemp)){
+                                             throw new Exception("remove fail");
+                                         }
                                         break;
                                     } else {
                                         // 货物超时 , 删除记录
-                                        goodList.remove(goodTemp);
+                                        if (!allGoods.remove(goodTemp)){
+                                            throw new Exception("remove fail");
+                                        }
                                     }
                                 }
+
                             }
                             if (good != null) {
                                 // A*
@@ -148,17 +162,12 @@ public class TestOperator implements Operator {
                         locks[i].unlock();
                     }
                 } catch (Exception e) {
-                    throw e;
+                    e.printStackTrace();
                 }
             }
         });
         thread.start();
-        try {
-            // 初始化时间没用完  睡一会让A*计算
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
 
@@ -167,7 +176,6 @@ public class TestOperator implements Operator {
      */
 
     void operate() throws InterruptedException {
-
         Thread.sleep(5);
         // 1. 机器人指令处理
         List<Robot> releaseRobots = new ArrayList<>();
@@ -367,6 +375,7 @@ public class TestOperator implements Operator {
 
     private void initMapMessage() {
         this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
+        this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map,berths);
     }
 
 
@@ -386,21 +395,16 @@ public class TestOperator implements Operator {
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
-            PointMessageV2 message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
-            if (message != null) {
-                good.frameId = this.currentFrameId;
-                // 计算新货物相对于所属泊位的性价比
-//                for (Berth berth : berths) {
-//                    if (berth.id == message.berthId) {
-//                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
-//                        good.costBenefitRatio = good.price / euDistance;
-                        // 取距离泊位的路程距离
-//                        int distance =
-//                    }
-                good.costBenefitRatio = (double) good.price / message.DistToBerth;
 
-                disGoodList.get(message.berthId).add(good);
+            for(int z = 0 ; z < BERTH_NUM ;z ++){
+                PointMessageV2 message = singleMapMessage[z].getOrDefault(new MapNode(good.x, good.y), null);
+                if (message != null) {
+                    good.frameId = this.currentFrameId;
+                    good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
+                    // disGoodList.get(message.berthId).add(good);
+                }
             }
+            allGoods.add(good);
 //            goods.add(good);
         }
 

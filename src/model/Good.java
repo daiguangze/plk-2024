@@ -31,13 +31,27 @@ public class Good {
     /**
      * 货物性价比 价格/欧式距离
      */
-    public double costBenefitRatio;
+    public double[] costBenefitRatio;
 
 
     public Good(int x, int y, int price) {
         this.x = x;
         this.y = y;
         this.price = price;
+        costBenefitRatio = new double[10];
     }
-    Good(){}
+
+    Good() {
+    }
+
+    @Override
+    public int hashCode() {
+        return this.x + this.y;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Good good = (Good) obj;
+        return this.x == good.x && this.y == good.y;
+    }
 }
