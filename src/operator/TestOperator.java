@@ -127,11 +127,15 @@ public class TestOperator implements Operator {
                                     if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
                                         good = goodTemp;
                                         // 锁定后超时
-                                        allGoods.remove(goodTemp);
+                                         if (!allGoods.remove(goodTemp)){
+                                             throw new Exception("remove fail");
+                                         }
                                         break;
                                     } else {
                                         // 货物超时 , 删除记录
-                                        allGoods.remove(goodTemp);
+                                        if (!allGoods.remove(goodTemp)){
+                                            throw new Exception("remove fail");
+                                        }
                                     }
                                 }
 
@@ -158,7 +162,7 @@ public class TestOperator implements Operator {
                         locks[i].unlock();
                     }
                 } catch (Exception e) {
-                    throw e;
+                    e.printStackTrace();
                 }
             }
         });
