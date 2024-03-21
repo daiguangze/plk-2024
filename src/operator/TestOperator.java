@@ -62,6 +62,8 @@ public class TestOperator implements Operator {
      */
     Map<MapNode, PointMessageV2> mapMessage;
 
+    Map<MapNode,PointMessage> singleMapMessage[] = new Map[10];
+
     /**
      * 碰撞检测地图
      */
@@ -79,6 +81,7 @@ public class TestOperator implements Operator {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
             disGoodList.add(new CopyOnWriteArrayList<>());
+            singleMapMessage[i] = new HashMap<>();
         }
         for (int i = 0; i < ROBOT_NUM; i++) {
             locks[i] = new ReentrantLock();
@@ -386,20 +389,14 @@ public class TestOperator implements Operator {
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
-            PointMessageV2 message = mapMessage.getOrDefault(new MapNode(good.x, good.y), null);
-            if (message != null) {
-                good.frameId = this.currentFrameId;
-                // 计算新货物相对于所属泊位的性价比
-//                for (Berth berth : berths) {
-//                    if (berth.id == message.berthId) {
-//                        double euDistance = Math.sqrt((double) ((good.x - berth.x) * (good.x - berth.x) + (good.y - berth.y) * (good.y - berth.y)));
-//                        good.costBenefitRatio = good.price / euDistance;
-                        // 取距离泊位的路程距离
-//                        int distance =
-//                    }
-                good.costBenefitRatio = (double) good.price / message.DistToBerth;
+            for(int z = 0 ; z < BERTH_NUM ;z ++){
+                PointMessage message = singleMapMessage[i].getOrDefault(new MapNode(good.x, good.y), null);
+                if (message != null) {
+                    good.frameId = this.currentFrameId;
+                    disGoodList.get(message.berthId).add(good);
+                    good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
+                }
 
-                disGoodList.get(message.berthId).add(good);
             }
 //            goods.add(good);
         }
