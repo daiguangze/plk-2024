@@ -141,6 +141,7 @@ public class TestOperator implements Operator {
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
                                     robot.instructionsV2.addLast(new Coord(-1, -1));
                                     robot.robotState = RobotState.FINDING_GOOD;
+                                    robot.price = good.price;
                                 }
                             }
                         }
@@ -210,7 +211,7 @@ public class TestOperator implements Operator {
                                 case PULL:
                                     Instruction.pullGood(i);
                                     robot.instructionsV2.clear();
-                                    berths.get(message.berthId).goodNums++;
+                                    berths.get(message.berthId).addGood(robot.price);
                                     robot.robotState = RobotState.BORING;
                                     break;
                             }
@@ -240,13 +241,13 @@ public class TestOperator implements Operator {
                     break;
                 case 1:
                     // 正常运行状态
-                    switch (boat.state) {
-                        case 0:
+                    switch (boat.pos) {
+                        case -1:
                             // 卸货（寻找泊位）
                             boat.loadedGoodsNum = 0;
                             getTargetBerth(i, 0);
                             break;
-                        case 1:
+                        default:
                             // 在泊位装货
                             int x = boat2Berth[i];
                             if (x != -1) {
@@ -256,23 +257,23 @@ public class TestOperator implements Operator {
                                 {
                                     // 如果单次装货货物超出最大容量
                                     if (berth.loading_speed + boat.loadedGoodsNum > boat.capacity) {
-                                        berth.goodNums -= boat.capacity - boat.loadedGoodsNum;
+                                        berth.removeGoods(boat.capacity - boat.loadedGoodsNum);
                                         boat.loadedGoodsNum = boat.capacity;
                                     }
                                     // 如果泊位剩余货物不足单次装货数量
                                     else if (berth.loading_speed > berth.goodNums) {
                                         boat.loadedGoodsNum += berth.goodNums;
-                                        berth.goodNums = 0;
+                                        berth.clearAllGoods();
                                     }
                                     // 普通一帧内装货
                                     else {
                                         boat.loadedGoodsNum += berth.loading_speed;
-                                        berth.goodNums -= berth.loading_speed;
+                                        berth.removeGoods(berth.loading_speed);
                                     }
                                 }
 
                                 // 船满了，或者没时间了，去虚拟点
-                                if (boat.loadedGoodsNum == boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
+                                if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
@@ -316,6 +317,11 @@ public class TestOperator implements Operator {
             } catch (Exception e) {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
             }
+//            if(i % 2000 == 0){
+//                for(int j = 0; j< BERTH_NUM; j++){
+//                    System.out.println("BerthID:" + j + "  goodsNums:" + berths.get(j).goodNums + "   totalPrice: " + berths.get(j).totalPrice);
+//                }
+//            }
         }
     }
 
@@ -446,36 +452,32 @@ public class TestOperator implements Operator {
         int target = -1;
         Boat boat = boats.get(i);
 
-        switch (situation) {
-            case 0: // 在虚拟点，优先找到一个货物最大的泊位
-                int max = 0;
-                for (int j = 0; j < BERTH_NUM; j++) {
-                    Berth berth = berths.get(j);
-                    int condition = berth2Boat[j];
-                    // 该泊位此时无船处理
-                    if (condition == -1 && RebalanceFloodFill.areas[j] != 0) {
-                        if (berth.goodNums >= max) {
-                            max = berth.goodNums;
-                            target = berth.id;
-                        }
-                    }
-                }
-                break;
-            case 1: // 在泊位处，等到某个泊位处的货物数量超过了容积的3/4，即动身前往
-                for (int j = 0; j < BERTH_NUM; j++) {
-                    Berth berth = berths.get(j);
-                    if (berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.75 && berth2Boat[j] == -1) {
+        int max = 0;
+        for (int j = 0; j < BERTH_NUM; j++) {
+            Berth berth = berths.get(j);
+            if (berth2Boat[j] != -1 || berth.totalPrice < max) continue;
+            switch (situation){
+                case 0:
+                    // 优先找到一个能来回的泊位
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5){
+                        max = berth.totalPrice;
                         target = berth.id;
                     }
-                }
-                break;
+                    break;
+                case 1:
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
+                        max = berth.totalPrice;
+                        target = berth.id;
+                    }
+                    break;
+            }
         }
 
 
         if (target == -1) return;
 
         // 没时间了！赶紧送货！！！
-        if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
+        /*if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
             Instruction.go(i);
             if (boat2Berth[i] != -1) {
                 berth2Boat[boat2Berth[i]] = -1;
@@ -483,20 +485,18 @@ public class TestOperator implements Operator {
             }
             boats.get(i).state = 0;
             return;
-        }
+        }*/
 
-        {
-            // 前往该泊位
-            Instruction.ship(i, target);
-            // 修改状态
-            if (boat2Berth[i] != -1) {
-                berth2Boat[boat2Berth[i]] = -1;
-            }
-            berth2Boat[target] = i;
-            boat2Berth[i] = target;
-            boats.get(i).state = 1;
-        }
 
+        // 前往该泊位
+        Instruction.ship(i, target);
+        // 修改状态
+        if (boat2Berth[i] != -1) {
+            berth2Boat[boat2Berth[i]] = -1;
+        }
+        berth2Boat[target] = i;
+        boat2Berth[i] = target;
+        boats.get(i).state = 1;
 
     }
 }

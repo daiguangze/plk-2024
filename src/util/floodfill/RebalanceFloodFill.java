@@ -134,7 +134,7 @@ public class RebalanceFloodFill {
                         ignoreIds.add(i);
                     }
                 }
-                while (ignoreIds.size() < 2 ) {
+                while (ignoreIds.size() < 0 ) {
                     // 最少也会塞2个进去
                     int min = areas[0];
                     int index = 0;
