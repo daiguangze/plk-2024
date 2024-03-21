@@ -46,6 +46,11 @@ public class Robot {
     public int mby;
 
     /**
+     * 当前拿到的货物价值
+     */
+    public int price;
+
+    /**
      * 指令队列 , 暂时不用考虑线程安全
      */
     public Queue<String> instructions = new ArrayDeque<>();
@@ -133,6 +138,7 @@ public class Robot {
         if (next.x == -1 || next.y == -1) {
             Instruction.getGood(this.id);
             this.instructionsV2.removeFirst();
+
             return true;
         }
 
