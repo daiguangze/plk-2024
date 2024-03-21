@@ -113,7 +113,6 @@ public class TestOperator implements Operator {
             while (true) {
                 try {
                     for (int i = 0; i < ROBOT_NUM; i++) {
-                        locks[i].lock();
                         Robot robot = robots.get(i);
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
@@ -149,17 +148,19 @@ public class TestOperator implements Operator {
                                     // A*计算路径
                                     aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
                                     // 将A* 里面的指令copy到机器人指令队列
+                                    locks[i].lock();
+
                                     while (!aStar.instructions.isEmpty()) {
                                         robot.instructionsV2.addLast(aStar.instructions.pop());
                                     }
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
                                     robot.instructionsV2.addLast(new Coord(-1, -1));
+                                    locks[i].unlock();
                                     robot.robotState = RobotState.FINDING_GOOD;
                                     robot.price = good.price;
                                 }
                             }
                         }
-                        locks[i].unlock();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -303,12 +304,6 @@ public class TestOperator implements Operator {
             }
 
         }
-
-        // >= 1 为正常运行状态
-
-        // 3. 结束后主动flush
-        System.out.flush();
-
     }
 
 
@@ -324,6 +319,7 @@ public class TestOperator implements Operator {
                 step();
             } catch (Exception e) {
                 // 不做异常处理 只是为了保证15000次循环能执行才做的异常捕获
+                e.printStackTrace();
             }
 //            if(i % 2000 == 0){
 //                for(int j = 0; j< BERTH_NUM; j++){
@@ -371,6 +367,11 @@ public class TestOperator implements Operator {
         }
         in.nextLine();
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initMapMessage() {
@@ -395,11 +396,10 @@ public class TestOperator implements Operator {
         int k = in.nextInt();
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
-
+            good.frameId = this.currentFrameId;
             for(int z = 0 ; z < BERTH_NUM ;z ++){
                 PointMessageV2 message = singleMapMessage[z].getOrDefault(new MapNode(good.x, good.y), null);
                 if (message != null) {
-                    good.frameId = this.currentFrameId;
                     good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
                     // disGoodList.get(message.berthId).add(good);
                 }
