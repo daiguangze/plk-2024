@@ -1,5 +1,6 @@
 package operator;
 
+import com.sun.jndi.ldap.Ber;
 import enums.RobotActionCode;
 import enums.RobotState;
 import instruction.Instruction;
@@ -15,6 +16,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TestOperator implements Operator {
+
+    boolean debug = true;
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
@@ -188,6 +191,78 @@ public class TestOperator implements Operator {
 
     }
 
+    public void findTargetGood(){
+        try {
+            List<Good> unReach = new ArrayList<>();
+            for (int i = 0; i < ROBOT_NUM; i++) {
+                Robot robot = robots.get(i);
+//                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
+                if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
+                    Good good = null;
+                    while (!allGoods.isEmpty() && good == null) {
+                        Optional<Good> maxCostBenefitGood = allGoods.stream()
+                                .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
+                        if (maxCostBenefitGood.isPresent()) {
+                            Good goodTemp = maxCostBenefitGood.get();
+                            if (goodTemp.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]] == -1 ) break;
+                            // 货物1000帧消失 预留200帧机器人行走时间
+                            if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
+                                good = goodTemp;
+                                // 锁定后超时
+                                if (!allGoods.remove(goodTemp)) {
+                                    throw new Exception("remove fail");
+                                }
+                                break;
+                            } else {
+                                // 货物超时 , 删除记录
+                                if (!allGoods.remove(goodTemp)) {
+                                    throw new Exception("remove fail");
+                                }
+                            }
+                        }
+
+                    }
+                    if (good != null) {
+                        PointMessageV2 robotPointPosition = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                        int robotInBerthId = robotPointPosition.berthId;
+                        PointMessageV2 message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(good.x, good.y), null);
+                        int x = good.x;
+                        int y = good.y;
+                        while (message.actionCode != RobotActionCode.PULL) {
+
+                            switch (message.actionCode) {
+                                case UP:
+                                    robot.instructionsV2.addFirst(new Coord(x , y));
+                                    x--;
+                                    break;
+                                case DOWN:
+                                    robot.instructionsV2.addFirst(new Coord(x , y));
+                                    x++;
+                                    break;
+                                case LEFT:
+                                    robot.instructionsV2.addFirst(new Coord(x, y ));
+                                    y--;
+                                    break;
+                                case RIGHT:
+                                    robot.instructionsV2.addFirst(new Coord(x, y ));
+                                    y++;
+                                    break;
+                            }
+                            message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(x, y), null);
+                        }
+
+                        // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
+                        robot.instructionsV2.addLast(new Coord(-1, -1));
+                        robot.robotState = RobotState.FINDING_GOOD;
+                        robot.price = good.price;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * 每帧与判题器的交互操作  1- 15000
@@ -200,11 +275,11 @@ public class TestOperator implements Operator {
         for (int i = 0; i < ROBOT_NUM; i++) {
             try {
                 boolean needReleaseLock = false;
-                locks[i].lock();
                 Robot robot = robots.get(i);
                 if ((robot.robotState == RobotState.BORING || robot.robotState == RobotState.FINDING_GOOD || robot.robotState == RobotState.GO_BERTH) && robot.status == 1) {
                     if (robot.robotState == RobotState.BORING) {
                         // 空闲状态 等待指令状态中 状态变更由指令计算线程完成
+                        findTargetGood();
                     } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
                         needReleaseLock = robot.move(robot.instructionsV2.getFirst(), collision, map);
                     } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
@@ -252,7 +327,6 @@ public class TestOperator implements Operator {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                locks[i].unlock();
             }
 
 
@@ -301,6 +375,16 @@ public class TestOperator implements Operator {
                                 // 船满了，或者没时间了，去虚拟点
                                 if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
+
+                                    if(debug){
+                                        System.out.printf("boat: %d, nums: %d%n", i, boat.loadedGoodsNum);
+                                        int sumPrices= 0;
+                                        for(int j = 0; j< BERTH_NUM; j++){
+                                            System.out.printf("berth: %d, nums: %d, prices: %d%n", j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                                            sumPrices += berths.get(j).totalPrice;
+                                        }
+                                        System.out.printf("lastPrices: %d", sumPrices);
+                                    }
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
                                     boat.state = 0;
@@ -327,7 +411,7 @@ public class TestOperator implements Operator {
     @Override
     public void run() {
         init();
-        interactBefore();
+        //interactBefore();
         String okk = in.nextLine();
         System.out.println("OK");
         System.out.flush();
