@@ -1,6 +1,5 @@
 package operator;
 
-import enums.RobotActionCode;
 import enums.RobotState;
 import instruction.Instruction;
 import model.Berth;
@@ -14,7 +13,9 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TestOperator implements Operator {
+public class FinalOperator implements Operator {
+
+    boolean debug = false;
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
@@ -84,7 +85,7 @@ public class TestOperator implements Operator {
     int[] berth2Boat = new int[BERTH_NUM];
     int[] boat2Berth = new int[BOAT_NUM];
 
-    public TestOperator(Scanner in) {
+    public FinalOperator(Scanner in) {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
             //disGoodList.add(new CopyOnWriteArrayList<>());
@@ -284,6 +285,12 @@ public class TestOperator implements Operator {
                                 // 船满了，或者没时间了，去虚拟点
                                 if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
+                                    if (debug){
+                                        System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                                        for(int j = 0; j< BERTH_NUM; j++){
+                                            System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                                        }
+                                    }
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
                                     boat.state = 0;
@@ -463,13 +470,13 @@ public class TestOperator implements Operator {
             switch (situation){
                 case 0:
                     // 优先找到一个能来回的泊位
-                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5){
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
@@ -477,20 +484,24 @@ public class TestOperator implements Operator {
             }
         }
 
-
-        if (target == -1) return;
-
-        // 没时间了！赶紧送货！！！
-        /*if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
-            Instruction.go(i);
-            if (boat2Berth[i] != -1) {
+        if (target == -1) {
+            if(boat2Berth[i] != -1)
+            {
+                if (MAX_FRAME - this.currentFrameId <= berths.get(boat2Berth[i]).transportTime * 2) return;
+                Instruction.go(i);
+                if (debug){
+                    System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                    for(int j = 0; j< BERTH_NUM; j++){
+                        System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                    }
+                }
                 berth2Boat[boat2Berth[i]] = -1;
                 boat2Berth[i] = -1;
+                boat.state = 0;
             }
-            boats.get(i).state = 0;
-            return;
-        }*/
 
+            return;
+        }
 
         // 前往该泊位
         Instruction.ship(i, target);
