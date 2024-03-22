@@ -194,7 +194,7 @@ public class TestOperator implements Operator {
             for (int i = 0; i < ROBOT_NUM; i++) {
                 Robot robot = robots.get(i);
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
-                if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
+                if (mapMessage.getOrDefault(new MapNode(robot.x,robot.y),null) != null && !allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                     Good good = null;
                     while (!allGoods.isEmpty() && good == null) {
                         Optional<Good> maxCostBenefitGood = allGoods.stream()

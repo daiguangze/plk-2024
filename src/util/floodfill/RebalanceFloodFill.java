@@ -40,7 +40,7 @@ public class RebalanceFloodFill {
     public static int[] allocation = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner in = new Scanner(new File(FloodFill.class.getResource("/").toString().substring(6) + "\\maps\\map5.txt"));
+        Scanner in = new Scanner(new File(FloodFill.class.getResource("/").toString().substring(6) + "\\maps\\map4.txt"));
         char[][] maps = new char[210][210];
         List<Berth> berths = new ArrayList<>();
         Map<MapNode, PointMessageV2> ans;
@@ -138,7 +138,7 @@ public class RebalanceFloodFill {
                         ignoreIds.add(i);
                     }
                 }
-                if (ignoreIds.size() > 2) ignoreIds.remove(ignoreIds.size() - 1);
+                while (ignoreIds.size() > 0) ignoreIds.remove(ignoreIds.size() - 1);
                 while (ignoreIds.size() < 0) {
                     // 最少也会塞2个进去
                     int min = areas[0];
