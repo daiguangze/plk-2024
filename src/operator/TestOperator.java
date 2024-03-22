@@ -375,8 +375,8 @@ public class TestOperator implements Operator {
     }
 
     private void initMapMessage() {
-        this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
         this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map,berths);
+        this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
     }
 
 
