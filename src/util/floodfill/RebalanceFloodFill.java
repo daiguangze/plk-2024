@@ -250,7 +250,8 @@ public class RebalanceFloodFill {
         int y = mapNode.y;
         // 当前点的message
         PointMessageV2 messageV2 = ans.getOrDefault(new MapNode(x, y), null);
-        int dist = Integer.MAX_VALUE - 400; // 减400防止溢出
+        // Integer.MAX_VALUE 视为不连通
+        int dist = Integer.MAX_VALUE; // 减400防止溢出
         if (messageV2 != null) {
             // 当前点到泊位的路程距离
             dist = messageV2.DistToBerth;
