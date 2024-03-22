@@ -126,7 +126,19 @@ public class FinalOperator implements Operator {
                                     Good goodTemp = maxCostBenefitGood.get();
                                     // 货物1000帧消失 预留200帧机器人行走时间
                                     if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
+                                        List<Good> noConnectivity = new ArrayList<>();
+                                        PointMessageV2 pointMessageV2 = mapMessage.get(new MapNode(goodTemp.x, goodTemp.y));
+                                        if (pointMessageV2.DistToBerth == Integer.MAX_VALUE) {
+                                            noConnectivity.add(goodTemp);
+                                            if (!allGoods.remove(goodTemp)){
+                                                throw new Exception("remove fail");
+                                            }
+                                            continue;
+                                        }
                                         good = goodTemp;
+                                        for (Good good1 : noConnectivity) {
+                                            allGoods.add(good1);
+                                        }
                                         // 锁定后超时
                                          if (!allGoods.remove(goodTemp)){
                                              throw new Exception("remove fail");
