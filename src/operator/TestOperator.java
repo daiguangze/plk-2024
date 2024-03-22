@@ -16,6 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class TestOperator implements Operator {
 
+    boolean debug = false;
+
     ReentrantLock[] locks = new ReentrantLock[10];
 
 
@@ -283,6 +285,12 @@ public class TestOperator implements Operator {
                                 // 船满了，或者没时间了，去虚拟点
                                 if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
+                                    if (debug){
+                                        System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                                        for(int j = 0; j< BERTH_NUM; j++){
+                                            System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                                        }
+                                    }
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
                                     boat.state = 0;
@@ -482,6 +490,12 @@ public class TestOperator implements Operator {
             {
                 if (MAX_FRAME - this.currentFrameId <= berths.get(boat2Berth[i]).transportTime * 2) return;
                 Instruction.go(i);
+                if (debug){
+                    System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                    for(int j = 0; j< BERTH_NUM; j++){
+                        System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                    }
+                }
                 berth2Boat[boat2Berth[i]] = -1;
                 boat2Berth[i] = -1;
                 boat.state = 0;
