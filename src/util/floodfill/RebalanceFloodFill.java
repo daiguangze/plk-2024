@@ -51,12 +51,12 @@ public class RebalanceFloodFill {
         for (int i = 0; i < 10; i++) {
             berths.add(new Berth(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt()));
         }
+        Map<MapNode, PointMessageV2>[] aaa = getSinglePointMessage(maps, berths);
         ans = getPointMessage(maps, berths);
         for (int xixi : areas) System.out.print(xixi + " ");
         System.out.println();
         for (int xixi : allocation) System.out.print(xixi + " ");
 
-        Map<MapNode, PointMessageV2>[] aaa = getSinglePointMessage(maps, berths);
         System.out.println();
     }
 
@@ -82,30 +82,31 @@ public class RebalanceFloodFill {
                 int y = berths.get(i).y;
                 // 泊位4*4 题目给你的为左上角数据.
                 queues[i].addFirst(new MapNode(x, y));
-                queues[i].addFirst(new MapNode(x, y + 1));
-                queues[i].addFirst(new MapNode(x, y + 2));
-                queues[i].addFirst(new MapNode(x, y + 3));
-                queues[i].addFirst(new MapNode(x + 1, y));
-                queues[i].addFirst(new MapNode(x + 2, y));
-                queues[i].addFirst(new MapNode(x + 3, y));
-                queues[i].addFirst(new MapNode(x + 1, y + 3));
-                queues[i].addFirst(new MapNode(x + 2, y + 3));
-                queues[i].addFirst(new MapNode(x + 3, y + 3));
-                queues[i].addFirst(new MapNode(x + 3, y + 1));
-                queues[i].addFirst(new MapNode(x + 3, y + 2));
+//                queues[i].addFirst(new MapNode(x, y + 1));
+//                queues[i].addFirst(new MapNode(x, y + 2));
+//                queues[i].addFirst(new MapNode(x, y + 3));
+//                queues[i].addFirst(new MapNode(x + 1, y));
+//                queues[i].addFirst(new MapNode(x + 2, y));
+//                queues[i].addFirst(new MapNode(x + 3, y));
+//                queues[i].addFirst(new MapNode(x + 1, y + 3));
+//                queues[i].addFirst(new MapNode(x + 2, y + 3));
+//                queues[i].addFirst(new MapNode(x + 3, y + 3));
+//                queues[i].addFirst(new MapNode(x + 3, y + 1));
+//                queues[i].addFirst(new MapNode(x + 3, y + 2));
                 ans.put(new MapNode(x, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
-                areas[i] += 12;
+                maps[x][y] = 'O';
+//                ans.put(new MapNode(x, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 1, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 2, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 3, y), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(i, RobotActionCode.PULL, 0));
+//                ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(i, RobotActionCode.PULL, 0));
+                areas[i] += 1;
             }
 
             // 4. 广搜
@@ -137,6 +138,7 @@ public class RebalanceFloodFill {
                         ignoreIds.add(i);
                     }
                 }
+                if (ignoreIds.size() > 2) ignoreIds.remove(ignoreIds.size() - 1);
                 while (ignoreIds.size() < 0) {
                     // 最少也会塞2个进去
                     int min = areas[0];
@@ -203,29 +205,30 @@ public class RebalanceFloodFill {
             int y = berths.get(z).y;
             // 泊位4*4 题目给你的为左上角数据.
             queue.addFirst(new MapNode(x, y));
-            queue.addFirst(new MapNode(x, y + 1));
-            queue.addFirst(new MapNode(x, y + 2));
-            queue.addFirst(new MapNode(x, y + 3));
-            queue.addFirst(new MapNode(x + 1, y));
-            queue.addFirst(new MapNode(x + 2, y));
-            queue.addFirst(new MapNode(x + 3, y));
-            queue.addFirst(new MapNode(x + 1, y + 3));
-            queue.addFirst(new MapNode(x + 2, y + 3));
-            queue.addFirst(new MapNode(x + 3, y + 3));
-            queue.addFirst(new MapNode(x + 3, y + 1));
-            queue.addFirst(new MapNode(x + 3, y + 2));
+//            queue.addFirst(new MapNode(x, y + 1));
+//            queue.addFirst(new MapNode(x, y + 2));
+//            queue.addFirst(new MapNode(x, y + 3));
+//            queue.addFirst(new MapNode(x + 1, y));
+//            queue.addFirst(new MapNode(x + 2, y));
+//            queue.addFirst(new MapNode(x + 3, y));
+//            queue.addFirst(new MapNode(x + 1, y + 3));
+//            queue.addFirst(new MapNode(x + 2, y + 3));
+//            queue.addFirst(new MapNode(x + 3, y + 3));
+//            queue.addFirst(new MapNode(x + 3, y + 1));
+//            queue.addFirst(new MapNode(x + 3, y + 2));
             ans.put(new MapNode(x, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 1), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 2), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(z, RobotActionCode.PULL, 0));
-            ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(z, RobotActionCode.PULL, 0));
+            maps[x][y] = 'O';
+//            ans.put(new MapNode(x, y + 1), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x, y + 2), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 1, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 2, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 3, y), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 1, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 2, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 3, y + 3), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 3, y + 1), new PointMessageV2(z, RobotActionCode.PULL, 0));
+//            ans.put(new MapNode(x + 3, y + 2), new PointMessageV2(z, RobotActionCode.PULL, 0));
             // 4. 广搜
             while (!queue.isEmpty()) {
                 // 取出全部节点
@@ -248,7 +251,7 @@ public class RebalanceFloodFill {
         int y = mapNode.y;
         // 当前点的message
         PointMessageV2 messageV2 = ans.getOrDefault(new MapNode(x, y), null);
-        int dist = Integer.MAX_VALUE; // 减400防止溢出
+        int dist = 0; // 减400防止溢出
         if (messageV2 != null) {
             // 当前点到泊位的路程距离
             dist = messageV2.DistToBerth;
@@ -291,7 +294,9 @@ public class RebalanceFloodFill {
         if (y < 0 || y >= maps[0].length) return false;
         if (visited[x][y] != -1) return false;
         if (maps[x][y] != '.') {
-            if (maps[x][y] != 'A') return false;
+            if (maps[x][y] != 'A'){
+                if (maps[x][y] != 'B') return false;
+            }
         }
         return true;
     }

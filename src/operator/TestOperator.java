@@ -69,7 +69,7 @@ public class TestOperator implements Operator {
      */
     Map<MapNode, PointMessageV2> mapMessage;
 
-    Map<MapNode,PointMessageV2> singleMapMessage[] = new Map[10];
+    Map<MapNode, PointMessageV2> singleMapMessage[] = new Map[10];
 
     /**
      * 碰撞检测地图
@@ -112,6 +112,7 @@ public class TestOperator implements Operator {
             AStarV2 aStar = new AStarV2('.');
             while (true) {
                 try {
+                    List<Good> unReach = new ArrayList<>();
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         Robot robot = robots.get(i);
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
@@ -122,44 +123,60 @@ public class TestOperator implements Operator {
                                         .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
+                                    if (goodTemp.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]] == -1 ) break;
                                     // 货物1000帧消失 预留200帧机器人行走时间
                                     if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
                                         good = goodTemp;
                                         // 锁定后超时
-                                         if (!allGoods.remove(goodTemp)){
-                                             throw new Exception("remove fail");
-                                         }
+                                        if (!allGoods.remove(goodTemp)) {
+                                            throw new Exception("remove fail");
+                                        }
                                         break;
                                     } else {
                                         // 货物超时 , 删除记录
-                                        if (!allGoods.remove(goodTemp)){
+                                        if (!allGoods.remove(goodTemp)) {
                                             throw new Exception("remove fail");
                                         }
                                     }
                                 }
 
                             }
+                            locks[i].lock();
                             if (good != null) {
-                                // A*
-                                if (robot.instructionsV2.isEmpty() && robot.robotState == RobotState.BORING) {
-                                    Node robotNode = new Node(robot.x, robot.y);
-                                    Node goodNode = new Node(good.x, good.y);
-//                                Node goodNode = new Node(73,49);
-                                    // A*计算路径
-                                    aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
-                                    // 将A* 里面的指令copy到机器人指令队列
-                                    locks[i].lock();
+                                PointMessageV2 robotPointPosition = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                                int robotInBerthId = robotPointPosition.berthId;
+                                PointMessageV2 message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(good.x, good.y), null);
+                                int x = good.x;
+                                int y = good.y;
+                                while (message.actionCode != RobotActionCode.PULL) {
 
-                                    while (!aStar.instructions.isEmpty()) {
-                                        robot.instructionsV2.addLast(aStar.instructions.pop());
+                                    switch (message.actionCode) {
+                                        case UP:
+                                            robot.instructionsV2.addFirst(new Coord(x , y));
+                                            x--;
+                                            break;
+                                        case DOWN:
+                                            robot.instructionsV2.addFirst(new Coord(x , y));
+                                            x++;
+                                            break;
+                                        case LEFT:
+                                            robot.instructionsV2.addFirst(new Coord(x, y ));
+                                            y--;
+                                            break;
+                                        case RIGHT:
+                                            robot.instructionsV2.addFirst(new Coord(x, y ));
+                                            y++;
+                                            break;
                                     }
-                                    // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
-                                    robot.instructionsV2.addLast(new Coord(-1, -1));
-                                    locks[i].unlock();
-                                    robot.robotState = RobotState.FINDING_GOOD;
-                                    robot.price = good.price;
+                                    message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(x, y), null);
                                 }
+
+                                // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
+                                robot.instructionsV2.addLast(new Coord(-1, -1));
+                                robot.robotState = RobotState.FINDING_GOOD;
+                                robot.price = good.price;
                             }
+                            locks[i].unlock();
                         }
                     }
                 } catch (Exception e) {
@@ -177,7 +194,7 @@ public class TestOperator implements Operator {
      */
 
     void operate() throws InterruptedException {
-        Thread.sleep(5);
+//        Thread.sleep(5);
         // 1. 机器人指令处理
         List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
@@ -218,7 +235,7 @@ public class TestOperator implements Operator {
 //                                    Instruction.left(i);
                                     break;
                                 case PULL:
-                                    Instruction.pullGood(i);
+                                    if (robot.goods == 1) Instruction.pullGood(i);
                                     robot.instructionsV2.clear();
                                     berths.get(message.berthId).addGood(robot.price);
                                     robot.robotState = RobotState.BORING;
@@ -357,7 +374,7 @@ public class TestOperator implements Operator {
         // 4. 读取结束
         // 5. 先把机器人初始化了先
         for (int i = 0; i < ROBOT_NUM; i++) {
-            robots.add(new Robot(i, RobotState.BORING));
+            robots.add(new Robot(i, RobotState.GO_BERTH));
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {
@@ -375,7 +392,7 @@ public class TestOperator implements Operator {
     }
 
     private void initMapMessage() {
-        this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map,berths);
+        this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map, berths);
         this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
     }
 
@@ -397,11 +414,13 @@ public class TestOperator implements Operator {
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
             good.frameId = this.currentFrameId;
-            for(int z = 0 ; z < BERTH_NUM ;z ++){
+            for (int z = 0; z < BERTH_NUM; z++) {
                 PointMessageV2 message = singleMapMessage[z].getOrDefault(new MapNode(good.x, good.y), null);
                 if (message != null) {
                     good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
                     // disGoodList.get(message.berthId).add(good);
+                }else{
+                    good.costBenefitRatio[z] = -1;
                 }
             }
             allGoods.add(good);
@@ -460,16 +479,16 @@ public class TestOperator implements Operator {
         for (int j = 0; j < BERTH_NUM; j++) {
             Berth berth = berths.get(j);
             if (berth2Boat[j] != -1 || berth.totalPrice < max) continue;
-            switch (situation){
+            switch (situation) {
                 case 0:
                     // 优先找到一个能来回的泊位
-                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5){
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5) {
                         max = berth.totalPrice;
                         target = berth.id;
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5){
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5) {
                         max = berth.totalPrice;
                         target = berth.id;
                     }

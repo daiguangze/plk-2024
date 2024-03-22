@@ -176,7 +176,7 @@ public class Robot {
      */
     private boolean isConflict(Coord coord, int[][] conflictMap, char[][] map) {
         if (conflictMap[coord.x][coord.y] != -1) return true;
-        if (map[coord.x][coord.y] != '.' && map[coord.x][coord.y] != 'B' && map[coord.x][coord.y] != 'A') return true;
+        if (map[coord.x][coord.y] != '.' && map[coord.x][coord.y] != 'B' && map[coord.x][coord.y] != 'A' && map[coord.x][coord.y] != 'O') return true;
         return false;
     }
 
