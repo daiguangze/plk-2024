@@ -1,5 +1,6 @@
 package com.huawei.codecraft;
 
+import operator.FinalOperator;
 import operator.TestOperator;
 
 import java.io.File;
@@ -18,7 +19,7 @@ public class Main {
 //            in.nextLine();
 //        }
 
-        TestOperator operator = new TestOperator(in);
+        FinalOperator operator = new FinalOperator(in);
         operator.run();
 
     }
