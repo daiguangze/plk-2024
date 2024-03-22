@@ -281,6 +281,10 @@ public class TestOperator implements Operator {
                         findTargetGood();
                     } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
                         needReleaseLock = robot.move(robot.instructionsV2.getFirst(), collision, map);
+                        if (!robot.instructionsV2.isEmpty() && robot.instructionsV2.getFirst().x == -1 && robot.instructionsV2.getFirst().y == -1){
+                            Instruction.getGood(robot.id);
+                            robot.instructionsV2.remove();
+                        }
                     } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
                         robot.robotState = RobotState.GO_BERTH;
@@ -315,6 +319,7 @@ public class TestOperator implements Operator {
                                     robot.robotState = RobotState.BORING;
                                     break;
                             }
+                            // 再看一眼
                         }
                     }
                 } else {
@@ -331,7 +336,7 @@ public class TestOperator implements Operator {
 
 
         }
-
+// ------------------------------------------------------------------------------------------------------------------------------
         // 2. 船指令
         for (int i = 0; i < boats.size(); i++) {
             Boat boat = boats.get(i);
@@ -457,12 +462,6 @@ public class TestOperator implements Operator {
             boats.add(boat);
         }
         in.nextLine();
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initMapMessage() {
