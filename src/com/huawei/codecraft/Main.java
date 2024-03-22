@@ -1,6 +1,6 @@
 package com.huawei.codecraft;
 
-import operator.TestOperator;
+import operator.FinalOperator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,7 +18,7 @@ public class Main {
 //            in.nextLine();
 //        }
 
-        TestOperator operator = new TestOperator(in);
+        FinalOperator operator = new FinalOperator(in);
         operator.run();
 
     }
