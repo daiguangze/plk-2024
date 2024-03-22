@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class FinalOperator implements Operator {
 
-    boolean debug = false;
+    boolean debug = true;
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
@@ -178,7 +178,6 @@ public class FinalOperator implements Operator {
      */
 
     void operate() throws InterruptedException {
-        Thread.sleep(5);
         // 1. 机器人指令处理
         List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
@@ -283,12 +282,12 @@ public class FinalOperator implements Operator {
                                 }
 
                                 // 船满了，或者没时间了，去虚拟点
-                                if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
+                                if (boat.loadedGoodsNum >= boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
                                     Instruction.go(i);
                                     if (debug){
-                                        System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                                        System.out.printf("BoatID:%d  Boat LoadGoodNum:%d", i, boat.loadedGoodsNum);
                                         for(int j = 0; j< BERTH_NUM; j++){
-                                            System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                                            System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
                                         }
                                     }
                                     berth2Boat[x] = -1;
@@ -341,8 +340,12 @@ public class FinalOperator implements Operator {
         // 1. 读取
         // 第一行输入2个整数,表示帧序号, 当前金钱
         read();
+        long startTime = System.currentTimeMillis();
         // 2. 操作
         operate();
+        long sleepTime = 13 - Math.min(13, System.currentTimeMillis() - startTime);
+        Thread.sleep(sleepTime);
+
         // 3. ok
         System.out.println("OK");
         // 4. 清空缓存区

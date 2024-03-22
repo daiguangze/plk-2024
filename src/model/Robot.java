@@ -48,7 +48,7 @@ public class Robot {
     /**
      * 当前拿到的货物价值
      */
-    public int price;
+    public volatile int price;
 
     /**
      * 指令队列 , 暂时不用考虑线程安全
