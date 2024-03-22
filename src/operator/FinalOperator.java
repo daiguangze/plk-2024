@@ -115,6 +115,7 @@ public class FinalOperator implements Operator {
                 try {
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         Robot robot = robots.get(i);
+                        locks[i].lock();
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
@@ -149,19 +150,20 @@ public class FinalOperator implements Operator {
                                     // A*计算路径
                                     aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
                                     // 将A* 里面的指令copy到机器人指令队列
-                                    locks[i].lock();
+
 
                                     while (!aStar.instructions.isEmpty()) {
                                         robot.instructionsV2.addLast(aStar.instructions.pop());
                                     }
                                     // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
                                     robot.instructionsV2.addLast(new Coord(-1, -1));
-                                    locks[i].unlock();
+
                                     robot.robotState = RobotState.FINDING_GOOD;
                                     robot.price = good.price;
                                 }
                             }
                         }
+                        locks[i].unlock();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -385,8 +387,8 @@ public class FinalOperator implements Operator {
     }
 
     private void initMapMessage() {
-        this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
         this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map,berths);
+        this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
     }
 
 
