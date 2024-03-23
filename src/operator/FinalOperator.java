@@ -414,7 +414,7 @@ public class FinalOperator implements Operator {
                                 }
 
                                 // 船满了，或者没时间了，去虚拟点
-                                if (boat.loadedGoodsNum >= boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
+                                if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime) {
                                     Instruction.go(i);
 
                                     if(debug){
@@ -432,7 +432,7 @@ public class FinalOperator implements Operator {
                                 }
                                 // 泊位空了，去下一个泊位
                                 else if (berth.goodNums == 0) {
-                                    if (boat.loadedGoodsNum >= boat.capacity * 0.66){
+                                    /*if (boat.loadedGoodsNum >= boat.capacity * 0.66){
                                         Instruction.go(i);
                                         if(debug){
                                             System.out.printf("boat: %d, nums: %d%n", i, boat.loadedGoodsNum);
@@ -448,8 +448,8 @@ public class FinalOperator implements Operator {
                                         boat.state = 0;
                                     }else{
                                         getTargetBerth(i, 1);
-                                    }
-
+                                    }*/
+                                    getTargetBerth(i, 1);
                                 }
                             }
                             break;
@@ -644,7 +644,9 @@ public class FinalOperator implements Operator {
             }
         }
 
-        if (target == -1) {
+        if (target == -1) return;
+
+        /*if (target == -1) {
             // 在泊位处
             if(boat2Berth[i] != -1)
             {
@@ -690,7 +692,7 @@ public class FinalOperator implements Operator {
             }
 
             return;
-        }
+        }*/
 
         // 前往该泊位
         Instruction.ship(i, target);
