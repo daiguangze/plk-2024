@@ -302,15 +302,12 @@ public class TestOperator implements Operator {
                                     break;
                                 case RIGHT:
                                     robot.move(new Coord(robot.x, robot.y + 1), collision, map);
-//                                    Instruction.right(i);
                                     break;
                                 case DOWN:
                                     robot.move(new Coord(robot.x + 1, robot.y), collision, map);
-//                                    Instruction.down(i);
                                     break;
                                 case LEFT:
                                     robot.move(new Coord(robot.x, robot.y - 1), collision, map);
-//                                    Instruction.left(i);
                                     break;
                                 case PULL:
                                     if (robot.goods == 1) Instruction.pullGood(i);
@@ -320,6 +317,7 @@ public class TestOperator implements Operator {
                                     break;
                             }
                             // 再看一眼
+
                         }
                     }
                 } else {
