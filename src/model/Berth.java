@@ -35,6 +35,11 @@ public class Berth {
      */
     public int totalPrice;
 
+    /**
+     * 0:关闭； 1：普通； 2：优先
+     */
+    public int priority = 1;
+
     public Berth() {
     }
 

@@ -19,8 +19,6 @@ public class FinalOperator implements Operator {
 
     boolean debug = true;
 
-    boolean debug = true;
-
     ReentrantLock[] locks = new ReentrantLock[10];
 
 
@@ -88,6 +86,11 @@ public class FinalOperator implements Operator {
      */
     int[] berth2Boat = new int[BERTH_NUM];
     int[] boat2Berth = new int[BOAT_NUM];
+
+    /**
+     * 所有船的最大送货时间
+     */
+    int maxTransportTime = 0;
 
     public FinalOperator(Scanner in) {
         this.in = in;
@@ -208,13 +211,12 @@ public class FinalOperator implements Operator {
 
     public void findTargetGood(){
         try {
-            List<Good> unReach = new ArrayList<>();
             for (int i = 0; i < ROBOT_NUM; i++) {
                 Robot robot = robots.get(i);
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
-                if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
+                if (mapMessage.getOrDefault(new MapNode(robot.x,robot.y),null) != null &&!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                     Good good = null;
-                    while (!allGoods.isEmpty() && good == null) {
+                    while (!allGoods.isEmpty()) {
                         Optional<Good> maxCostBenefitGood = allGoods.stream()
                                 .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
                         if (maxCostBenefitGood.isPresent()) {
@@ -270,6 +272,30 @@ public class FinalOperator implements Operator {
                         robot.instructionsV2.addLast(new Coord(-1, -1));
                         robot.robotState = RobotState.FINDING_GOOD;
                         robot.price = good.price;
+
+                        int minDist = Integer.MAX_VALUE;
+                        // 过滤一下，投放到优先级最高的泊位
+                        for (int j = 0; j < BERTH_NUM; j++){
+                            Berth berth = berths.get(j);
+                            PointMessageV2 goodMessage = singleMapMessage[j].getOrDefault(new MapNode(good.x, good.y), null);
+                            if (berth.priority == 2 && goodMessage != null && goodMessage.DistToBerth < minDist){
+                                RebalanceFloodFill.allocation[robot.id] = j;
+                                minDist = goodMessage.DistToBerth;
+                            }
+                        }
+
+                        // 如果港口被关闭了，选择一个距离货物次近的港口
+                        minDist = Integer.MAX_VALUE;
+                        if(berths.get(RebalanceFloodFill.allocation[robot.id]).priority == 0){
+                            for (int j = 0; j < BERTH_NUM; j++){
+                                Berth berth = berths.get(j);
+                                PointMessageV2 goodMessage = singleMapMessage[j].getOrDefault(new MapNode(good.x, good.y), null);
+                                if (berth.priority != 0 && goodMessage != null && goodMessage.DistToBerth < minDist){
+                                    RebalanceFloodFill.allocation[robot.id] = j;
+                                    minDist = goodMessage.DistToBerth;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -302,7 +328,7 @@ public class FinalOperator implements Operator {
                         robot.robotState = RobotState.GO_BERTH;
                     } else if (robot.robotState == RobotState.GO_BERTH) {
                         // 取出当前节点的路径信息
-                        PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                        PointMessageV2 message = singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x, robot.y), null);
                         if (message == null) {
                             // 到达泊位 变更为空闲状态
 //                        Instruction.pullGood(i);
@@ -398,7 +424,7 @@ public class FinalOperator implements Operator {
                                             System.out.printf("berth: %d, nums: %d, prices: %d%n", j, berths.get(j).goodNums, berths.get(j).totalPrice);
                                             sumPrices += berths.get(j).totalPrice;
                                         }
-                                        System.out.printf("lastPrices: %d", sumPrices);
+                                        System.out.printf("lastPrices: %d%n", sumPrices);
                                     }
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
@@ -406,7 +432,24 @@ public class FinalOperator implements Operator {
                                 }
                                 // 泊位空了，去下一个泊位
                                 else if (berth.goodNums == 0) {
-                                    getTargetBerth(i, 1);
+                                    if (boat.loadedGoodsNum >= boat.capacity * 0.66){
+                                        Instruction.go(i);
+                                        if(debug){
+                                            System.out.printf("boat: %d, nums: %d%n", i, boat.loadedGoodsNum);
+                                            int sumPrices= 0;
+                                            for(int j = 0; j< BERTH_NUM; j++){
+                                                System.out.printf("berth: %d, nums: %d, prices: %d%n", j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                                                sumPrices += berths.get(j).totalPrice;
+                                            }
+                                            System.out.printf("lastPrices: %d%n", sumPrices);
+                                        }
+                                        berth2Boat[x] = -1;
+                                        boat2Berth[i] = -1;
+                                        boat.state = 0;
+                                    }else{
+                                        getTargetBerth(i, 1);
+                                    }
+
                                 }
                             }
                             break;
@@ -556,7 +599,11 @@ public class FinalOperator implements Operator {
 
     private void getBerths() {
         for (int i = 0; i < BERTH_NUM; i++) {
-            berths.add(new Berth(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt()));
+            Berth berth = new Berth(in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt(), in.nextInt());
+            berths.add(berth);
+            if (berth.transportTime > maxTransportTime){
+                maxTransportTime = berth.transportTime;
+            }
         }
     }
 
@@ -577,7 +624,8 @@ public class FinalOperator implements Operator {
         int max = 0;
         for (int j = 0; j < BERTH_NUM; j++) {
             Berth berth = berths.get(j);
-            if (berth2Boat[j] != -1 || berth.totalPrice < max) continue;
+            // 如果港口被分配，港口价值小则跳过
+            if (berth2Boat[j] != -1 || berth.totalPrice < max ) continue;
             switch (situation) {
                 case 0:
                     // 优先找到一个能来回的泊位
@@ -587,7 +635,8 @@ public class FinalOperator implements Operator {
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
+//                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity * 0.66) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
+                    if ( MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
                         max = berth.totalPrice;
                         target = berth.id;
                     }
@@ -596,15 +645,44 @@ public class FinalOperator implements Operator {
         }
 
         if (target == -1) {
+            // 在泊位处
             if(boat2Berth[i] != -1)
             {
+                // 处理最后一趟的情况
+                // 如果可以通过移动回到虚拟点，优先移动；如果不能通过移动回到虚拟点，则在泊位等到最后一刻再回去
+                // 比移动时间+回去时间大，比1.5趟来回虚拟点时间小，则说明是最后一趟
+                if (MAX_FRAME - this.currentFrameId >= maxTransportTime + 500 && MAX_FRAME - this.currentFrameId <= maxTransportTime * 3){
+                    max = 0;
+                    for(int j =0; j< BERTH_NUM; j++){
+                        if (berths.get(j).totalPrice > max){
+                            target = j;
+                            max = berths.get(j).totalPrice;
+                        }
+                    }
+                    if (target != -1){
+                        // 设置目标港口优先级
+                        berths.get(target).priority = 2;
+                        // 绑定
+                        boat2Berth[i] = target;
+                        berth2Boat[target] = i;
+                        // 关闭当前港口
+                        berths.get(boat2Berth[i]).priority = 0;
+                        // 移动
+                        Instruction.ship(i, target);
+                        return;
+                    }
+                }
+                // 如果小于一趟来回了，等到最后一刻再回港
                 if (MAX_FRAME - this.currentFrameId <= berths.get(boat2Berth[i]).transportTime * 2) return;
                 Instruction.go(i);
                 if (debug){
                     System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
+                    int sumPrices = 0;
                     for(int j = 0; j< BERTH_NUM; j++){
                         System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
+                        sumPrices += berths.get(j).totalPrice;
                     }
+                    System.out.printf("lastPrices: %d%n", sumPrices);
                 }
                 berth2Boat[boat2Berth[i]] = -1;
                 boat2Berth[i] = -1;
@@ -624,5 +702,9 @@ public class FinalOperator implements Operator {
         boat2Berth[i] = target;
         boats.get(i).state = 1;
 
+        // 处理最后一趟
+        if (situation == 0 && MAX_FRAME - this.currentFrameId <= maxTransportTime * 2 + 570){
+            berths.get(target).priority = 2;
+        }
     }
 }
