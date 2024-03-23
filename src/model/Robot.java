@@ -203,7 +203,7 @@ public class Robot {
                 if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap, map);
                 break;
         }
-        if (this.robotState == RobotState.FINDING_GOOD) {
+        if (result && this.robotState == RobotState.FINDING_GOOD) {
             this.instructionsV2.addFirst(new Coord(this.x, this.y));
         }
         return result;
