@@ -107,7 +107,7 @@ public class TestOperator implements Operator {
      * 另起一个线程, 进行计算操作 .
      * 只负责计算和往对应机器人的指令队列放指令
      */
-    private void interactBefore() {
+    /*private void interactBefore() {
         Thread thread = new Thread(() -> {
             AStarV2 aStar = new AStarV2('.');
             while (true) {
@@ -186,7 +186,7 @@ public class TestOperator implements Operator {
         });
         thread.start();
 
-    }
+    }*/
 
     public void findTargetGood(){
         try {
@@ -194,7 +194,7 @@ public class TestOperator implements Operator {
             for (int i = 0; i < ROBOT_NUM; i++) {
                 Robot robot = robots.get(i);
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
-                if (mapMessage.getOrDefault(new MapNode(robot.x,robot.y),null) != null && !allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
+                if (singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x,robot.y),null) != null && !allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                     Good good = null;
                     while (!allGoods.isEmpty() && good == null) {
                         Optional<Good> maxCostBenefitGood = allGoods.stream()
@@ -219,9 +219,9 @@ public class TestOperator implements Operator {
                         }
 
                     }
-                    locks[i].lock();
+//                    locks[i].lock();
                     if (good != null) {
-                        PointMessageV2 robotPointPosition = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                        PointMessageV2 robotPointPosition = singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x, robot.y), null);
                         int robotInBerthId = robotPointPosition.berthId;
                         PointMessageV2 message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(good.x, good.y), null);
                         int x = good.x;
@@ -253,8 +253,21 @@ public class TestOperator implements Operator {
                         robot.instructionsV2.addLast(new Coord(-1, -1));
                         robot.robotState = RobotState.FINDING_GOOD;
                         robot.price = good.price;
+
+                        double maxBenefit = -1;
+                        int targetBerth = -1;
+                        for(int j = 0; j < BERTH_NUM; j++){
+                            if (good.costBenefitRatio[j] > maxBenefit){
+                                targetBerth = j;
+                                maxBenefit = good.costBenefitRatio[j];
+                            }
+                        }
+                        if (targetBerth != -1){
+                            RebalanceFloodFill.allocation[robot.id] = targetBerth;
+                        }
                     }
-                    locks[i].unlock();
+//                    locks[i].unlock();
+
                 }
             }
         } catch (Exception e) {
@@ -290,7 +303,20 @@ public class TestOperator implements Operator {
                         robot.robotState = RobotState.GO_BERTH;
                     } else if (robot.robotState == RobotState.GO_BERTH) {
                         // 取出当前节点的路径信息
-                        PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+//                        PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                        if (berths.get(RebalanceFloodFill.allocation[robot.id]).isClose){
+                            int minDist = Integer.MAX_VALUE;
+                            for(int j = 0; j< BERTH_NUM; j++){
+                                if (!berths.get(j).isClose){
+                                    PointMessageV2 message = singleMapMessage[j].getOrDefault(new MapNode(robot.x, robot.y), null);
+                                    if (message != null && message.DistToBerth < minDist){
+                                        minDist = message.DistToBerth;
+                                        RebalanceFloodFill.allocation[robot.id] = j;
+                                    }
+                                }
+                            }
+                        }
+                        PointMessageV2 message = singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x, robot.y), null);
                         if (message == null) {
                             // 到达泊位 变更为空闲状态
 //                        Instruction.pullGood(i);
@@ -377,6 +403,9 @@ public class TestOperator implements Operator {
 
                                 // 船满了，或者没时间了，去虚拟点
                                 if (boat.loadedGoodsNum >= boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 1) {
+                                    if (MAX_FRAME - this.currentFrameId <= berth.transportTime + 1){
+                                        berth.isClose = true;
+                                    }
                                     Instruction.go(i);
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
@@ -603,6 +632,13 @@ public class TestOperator implements Operator {
         }*/
 
 
+        // 最后一次移动时，关闭离开的泊位
+        Berth targetBerth = berths.get(target);
+        if (MAX_FRAME - this.currentFrameId < targetBerth.transportTime + 500 + Math.min(targetBerth.goodNums ,boat.capacity - boat.loadedGoodsNum) / targetBerth.loading_speed ){
+            if (boat2Berth[i] != -1) {
+               berths.get(boat2Berth[i]).isClose = true;
+            }
+        }
         // 前往该泊位
         Instruction.ship(i, target);
         // 修改状态
@@ -612,6 +648,7 @@ public class TestOperator implements Operator {
         berth2Boat[target] = i;
         boat2Berth[i] = target;
         boats.get(i).state = 1;
+
 
     }
 }

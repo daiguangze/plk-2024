@@ -4,12 +4,12 @@ public class MyConfig {
     /**
      * 容量总和为容量最大值的多少时，移动泊位
      */
-    public static double changeBerthCapacity = 0.70;
+    public static double changeBerthCapacity = 0.33;
 
     /**
      * 泊位装空了，并且装了多少货物的时候去虚拟点
      */
-    public static double goToMoney = 0.9;
+    public static double goToMoney = 0.7;
 
     /**
      * 关闭多少个港口(最多)
