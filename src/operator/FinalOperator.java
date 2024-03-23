@@ -661,7 +661,7 @@ public class FinalOperator implements Operator {
                     }
                     if (target != -1){
                         // 设置目标港口优先级
-                        berths.get(target).priority = 2;
+//                        berths.get(target).priority = 2;
                         // 绑定
                         boat2Berth[i] = target;
                         berth2Boat[target] = i;
@@ -704,7 +704,7 @@ public class FinalOperator implements Operator {
 
         // 处理最后一趟
         if (situation == 0 && MAX_FRAME - this.currentFrameId <= maxTransportTime * 2 + 570){
-            berths.get(target).priority = 2;
+//            berths.get(target).priority = 2;
         }
     }
 }
