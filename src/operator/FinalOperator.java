@@ -123,7 +123,7 @@ public class FinalOperator implements Operator {
                     List<Good> unReach = new ArrayList<>();
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         Robot robot = robots.get(i);
-                        locks[i].lock();
+//                        locks[i].lock();
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
@@ -162,7 +162,7 @@ public class FinalOperator implements Operator {
                                 }
 
                             }
-                            locks[i].lock();
+//                            locks[i].lock();
                             if (good != null) {
                                 PointMessageV2 robotPointPosition = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
                                 int robotInBerthId = robotPointPosition.berthId;
@@ -197,7 +197,7 @@ public class FinalOperator implements Operator {
                                 robot.robotState = RobotState.FINDING_GOOD;
                                 robot.price = good.price;
                             }
-                            locks[i].unlock();
+//                            locks[i].unlock();
                         }
                     }
                 } catch (Exception e) {
