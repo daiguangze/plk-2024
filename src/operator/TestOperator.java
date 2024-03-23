@@ -376,7 +376,7 @@ public class TestOperator implements Operator {
                                 }
 
                                 // 船满了，或者没时间了，去虚拟点
-                                if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
+                                if (boat.loadedGoodsNum >= boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 1) {
                                     Instruction.go(i);
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
@@ -384,7 +384,21 @@ public class TestOperator implements Operator {
                                 }
                                 // 泊位空了，去下一个泊位
                                 else if (berth.goodNums == 0) {
-                                    getTargetBerth(i, 1);
+                                    if(boat.loadedGoodsNum >= boat.capacity * MyConfig.goToMoney){
+                                        // 如果来不及去其他泊位了，就停在当前港口，直到最后一刻
+                                        if(MAX_FRAME - this.currentFrameId <= 500 + berth.transportTime){
+                                            break;
+                                        }
+                                        else{
+                                            Instruction.go(i);
+                                            berth2Boat[x] = -1;
+                                            boat2Berth[i] = -1;
+                                            boat.state = 0;
+                                        }
+
+                                    }else{
+                                        getTargetBerth(i, 1);
+                                    }
                                 }
                             }
                             break;
@@ -547,21 +561,28 @@ public class TestOperator implements Operator {
         Boat boat = boats.get(i);
 
         int max = 0;
+        int diff = Integer.MAX_VALUE;
         for (int j = 0; j < BERTH_NUM; j++) {
             Berth berth = berths.get(j);
-            if (berth2Boat[j] != -1 || berth.totalPrice < max) continue;
+//            if (berth2Boat[j] != -1 || (berth.totalPrice < max )) continue;
+            if (berth2Boat[j] != -1) continue;
             switch (situation) {
                 case 0:
+                    // 在虚拟点时，找最多的
+                    if (berth.totalPrice < max) continue;
                     // 优先找到一个能来回的泊位
-                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + berth.goodNums / berth.loading_speed + 5) {
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2  + 1) {
                         max = berth.totalPrice;
                         target = berth.id;
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + berth.goodNums / berth.loading_speed + 5) {
+                    // 在泊位时，找与capacity差距最小的
+                    if (Math.abs(boat.capacity - (berth.goodNums + boat.loadedGoodsNum)) > diff) continue;
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity * MyConfig.changeBerthCapacity) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 1) {
                         max = berth.totalPrice;
                         target = berth.id;
+                        diff = Math.abs(boat.capacity - (berth.goodNums + boat.loadedGoodsNum));
                     }
                     break;
             }

@@ -2,6 +2,7 @@ package util.floodfill;
 
 import enums.RobotActionCode;
 import model.Berth;
+import operator.MyConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -138,8 +139,8 @@ public class RebalanceFloodFill {
                         ignoreIds.add(i);
                     }
                 }
-                while (ignoreIds.size() > 2) ignoreIds.remove(ignoreIds.size() - 1);
-                while (ignoreIds.size() < 0) {
+                while (ignoreIds.size() > MyConfig.closeBerthMax) ignoreIds.remove(ignoreIds.size() - 1);
+                while (ignoreIds.size() < MyConfig.closeBerthMin) {
                     // 最少也会塞2个进去
                     int min = areas[0];
                     int index = 0;
