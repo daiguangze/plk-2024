@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TestOperator implements Operator {
+public class FinalOperator implements Operator {
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
@@ -84,7 +84,7 @@ public class TestOperator implements Operator {
     int[] berth2Boat = new int[BERTH_NUM];
     int[] boat2Berth = new int[BOAT_NUM];
 
-    public TestOperator(Scanner in) {
+    public FinalOperator(Scanner in) {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
             //disGoodList.add(new CopyOnWriteArrayList<>());
