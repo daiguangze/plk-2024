@@ -175,8 +175,9 @@ public class Robot {
      * @param conflictMap 冲突地图
      */
     private boolean isConflict(Coord coord, int[][] conflictMap, char[][] map) {
+        if (coord.x >= conflictMap.length || coord.y >= conflictMap[0].length || coord.x < 0 || coord.y < 0) return true;
         if (conflictMap[coord.x][coord.y] != -1) return true;
-        if (map[coord.x][coord.y] != '.' && map[coord.x][coord.y] != 'B' && map[coord.x][coord.y] != 'A') return true;
+        if (map[coord.x][coord.y] != '.' && map[coord.x][coord.y] != 'B' && map[coord.x][coord.y] != 'A' && map[coord.x][coord.y] != 'O') return true;
         return false;
     }
 
@@ -203,7 +204,7 @@ public class Robot {
                 if (!result) result = doMove(new Coord(this.x, this.y - 1), conflictMap, map);
                 break;
         }
-        if (this.robotState == RobotState.FINDING_GOOD) {
+        if (result && this.robotState == RobotState.FINDING_GOOD) {
             this.instructionsV2.addFirst(new Coord(this.x, this.y));
         }
         return result;

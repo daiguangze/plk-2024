@@ -1,5 +1,6 @@
 package operator;
 
+import enums.RobotActionCode;
 import enums.RobotState;
 import instruction.Instruction;
 import model.Berth;
@@ -13,9 +14,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FinalOperator implements Operator {
-
-    boolean debug = false;
+public class TestOperator implements Operator {
 
     ReentrantLock[] locks = new ReentrantLock[10];
 
@@ -70,7 +69,7 @@ public class FinalOperator implements Operator {
      */
     Map<MapNode, PointMessageV2> mapMessage;
 
-    Map<MapNode,PointMessageV2> singleMapMessage[] = new Map[10];
+    Map<MapNode, PointMessageV2> singleMapMessage[] = new Map[10];
 
     /**
      * 碰撞检测地图
@@ -85,7 +84,7 @@ public class FinalOperator implements Operator {
     int[] berth2Boat = new int[BERTH_NUM];
     int[] boat2Berth = new int[BOAT_NUM];
 
-    public FinalOperator(Scanner in) {
+    public TestOperator(Scanner in) {
         this.in = in;
         for (int i = 0; i < BERTH_NUM; i++) {
             //disGoodList.add(new CopyOnWriteArrayList<>());
@@ -108,14 +107,14 @@ public class FinalOperator implements Operator {
      * 另起一个线程, 进行计算操作 .
      * 只负责计算和往对应机器人的指令队列放指令
      */
-    private void interactBefore() {
+    /*private void interactBefore() {
         Thread thread = new Thread(() -> {
             AStarV2 aStar = new AStarV2('.');
             while (true) {
                 try {
+                    List<Good> unReach = new ArrayList<>();
                     for (int i = 0; i < ROBOT_NUM; i++) {
                         Robot robot = robots.get(i);
-                        locks[i].lock();
 //                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
                         if (!allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
                             Good good = null;
@@ -124,58 +123,61 @@ public class FinalOperator implements Operator {
                                         .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
                                 if (maxCostBenefitGood.isPresent()) {
                                     Good goodTemp = maxCostBenefitGood.get();
+                                    if (goodTemp.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]] == -1 ) break;
                                     // 货物1000帧消失 预留200帧机器人行走时间
                                     if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
-                                        List<Good> noConnectivity = new ArrayList<>();
-                                        PointMessageV2 pointMessageV2 = mapMessage.get(new MapNode(goodTemp.x, goodTemp.y));
-                                        if (pointMessageV2.DistToBerth == Integer.MAX_VALUE) {
-                                            noConnectivity.add(goodTemp);
-                                            if (!allGoods.remove(goodTemp)){
-                                                throw new Exception("remove fail");
-                                            }
-                                            continue;
-                                        }
                                         good = goodTemp;
-                                        for (Good good1 : noConnectivity) {
-                                            allGoods.add(good1);
-                                        }
                                         // 锁定后超时
-                                         if (!allGoods.remove(goodTemp)){
-                                             throw new Exception("remove fail");
-                                         }
+                                        if (!allGoods.remove(goodTemp)) {
+                                            throw new Exception("remove fail");
+                                        }
                                         break;
                                     } else {
                                         // 货物超时 , 删除记录
-                                        if (!allGoods.remove(goodTemp)){
+                                        if (!allGoods.remove(goodTemp)) {
                                             throw new Exception("remove fail");
                                         }
                                     }
                                 }
 
                             }
+                            locks[i].lock();
                             if (good != null) {
-                                // A*
-                                if (robot.instructionsV2.isEmpty() && robot.robotState == RobotState.BORING) {
-                                    Node robotNode = new Node(robot.x, robot.y);
-                                    Node goodNode = new Node(good.x, good.y);
-//                                Node goodNode = new Node(73,49);
-                                    // A*计算路径
-                                    aStar.start(new MapInfo(map, map.length, map.length, robotNode, goodNode));
-                                    // 将A* 里面的指令copy到机器人指令队列
+                                PointMessageV2 robotPointPosition = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                                int robotInBerthId = robotPointPosition.berthId;
+                                PointMessageV2 message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(good.x, good.y), null);
+                                int x = good.x;
+                                int y = good.y;
+                                while (message.actionCode != RobotActionCode.PULL) {
 
-
-                                    while (!aStar.instructions.isEmpty()) {
-                                        robot.instructionsV2.addLast(aStar.instructions.pop());
+                                    switch (message.actionCode) {
+                                        case UP:
+                                            robot.instructionsV2.addFirst(new Coord(x , y));
+                                            x--;
+                                            break;
+                                        case DOWN:
+                                            robot.instructionsV2.addFirst(new Coord(x , y));
+                                            x++;
+                                            break;
+                                        case LEFT:
+                                            robot.instructionsV2.addFirst(new Coord(x, y ));
+                                            y--;
+                                            break;
+                                        case RIGHT:
+                                            robot.instructionsV2.addFirst(new Coord(x, y ));
+                                            y++;
+                                            break;
                                     }
-                                    // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
-                                    robot.instructionsV2.addLast(new Coord(-1, -1));
-
-                                    robot.robotState = RobotState.FINDING_GOOD;
-                                    robot.price = good.price;
+                                    message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(x, y), null);
                                 }
+
+                                // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
+                                robot.instructionsV2.addLast(new Coord(-1, -1));
+                                robot.robotState = RobotState.FINDING_GOOD;
+                                robot.price = good.price;
                             }
+                            locks[i].unlock();
                         }
-                        locks[i].unlock();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -184,15 +186,101 @@ public class FinalOperator implements Operator {
         });
         thread.start();
 
-    }
+    }*/
 
+    public void findTargetGood(){
+        try {
+            List<Good> unReach = new ArrayList<>();
+            for (int i = 0; i < ROBOT_NUM; i++) {
+                Robot robot = robots.get(i);
+//                        List<Good> goodList = disGoodList.get(RebalanceFloodFill.allocation[i]);
+                if (singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x,robot.y),null) != null && !allGoods.isEmpty() && robot.robotState == RobotState.BORING) {
+                    Good good = null;
+                    while (!allGoods.isEmpty() && good == null) {
+                        Optional<Good> maxCostBenefitGood = allGoods.stream()
+                                .max(Comparator.comparingDouble(g -> g.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]]));
+                        if (maxCostBenefitGood.isPresent()) {
+                            Good goodTemp = maxCostBenefitGood.get();
+                            if (goodTemp.costBenefitRatio[RebalanceFloodFill.allocation[robot.id]] == -1 ) break;
+                            // 货物1000帧消失 预留200帧机器人行走时间
+                            if (goodTemp.frameId + 1000 - 100 > currentFrameId) {
+                                good = goodTemp;
+                                // 锁定后超时
+                                if (!allGoods.remove(goodTemp)) {
+                                    throw new Exception("remove fail");
+                                }
+                                break;
+                            } else {
+                                // 货物超时 , 删除记录
+                                if (!allGoods.remove(goodTemp)) {
+                                    throw new Exception("remove fail");
+                                }
+                            }
+                        }
+
+                    }
+//                    locks[i].lock();
+                    if (good != null) {
+                        PointMessageV2 robotPointPosition = singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x, robot.y), null);
+                        int robotInBerthId = robotPointPosition.berthId;
+                        PointMessageV2 message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(good.x, good.y), null);
+                        int x = good.x;
+                        int y = good.y;
+                        while (message.actionCode != RobotActionCode.PULL) {
+
+                            switch (message.actionCode) {
+                                case UP:
+                                    robot.instructionsV2.addFirst(new Coord(x , y));
+                                    x--;
+                                    break;
+                                case DOWN:
+                                    robot.instructionsV2.addFirst(new Coord(x , y));
+                                    x++;
+                                    break;
+                                case LEFT:
+                                    robot.instructionsV2.addFirst(new Coord(x, y ));
+                                    y--;
+                                    break;
+                                case RIGHT:
+                                    robot.instructionsV2.addFirst(new Coord(x, y ));
+                                    y++;
+                                    break;
+                            }
+                            message = singleMapMessage[robotInBerthId].getOrDefault(new MapNode(x, y), null);
+                        }
+
+                        // 加入 取货指令 先暂时用 -1 -1 的坐标代替一下 如果有更好的想法再改
+                        robot.instructionsV2.addLast(new Coord(-1, -1));
+                        robot.robotState = RobotState.FINDING_GOOD;
+                        robot.price = good.price;
+
+                        double maxBenefit = -1;
+                        int targetBerth = -1;
+                        for(int j = 0; j < BERTH_NUM; j++){
+                            if (good.costBenefitRatio[j] > maxBenefit){
+                                targetBerth = j;
+                                maxBenefit = good.costBenefitRatio[j];
+                            }
+                        }
+                        if (targetBerth != -1){
+                            RebalanceFloodFill.allocation[robot.id] = targetBerth;
+                        }
+                    }
+//                    locks[i].unlock();
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 每帧与判题器的交互操作  1- 15000
      */
 
     void operate() throws InterruptedException {
-        Thread.sleep(5);
+//        Thread.sleep(5);
         // 1. 机器人指令处理
         List<Robot> releaseRobots = new ArrayList<>();
         for (int i = 0; i < ROBOT_NUM; i++) {
@@ -203,14 +291,32 @@ public class FinalOperator implements Operator {
                 if ((robot.robotState == RobotState.BORING || robot.robotState == RobotState.FINDING_GOOD || robot.robotState == RobotState.GO_BERTH) && robot.status == 1) {
                     if (robot.robotState == RobotState.BORING) {
                         // 空闲状态 等待指令状态中 状态变更由指令计算线程完成
+                        findTargetGood();
                     } else if (robot.robotState == RobotState.FINDING_GOOD && !robot.instructionsV2.isEmpty()) {
                         needReleaseLock = robot.move(robot.instructionsV2.getFirst(), collision, map);
+                        if (!robot.instructionsV2.isEmpty() && robot.instructionsV2.getFirst().x == -1 && robot.instructionsV2.getFirst().y == -1){
+                            Instruction.getGood(robot.id);
+                            robot.instructionsV2.remove();
+                        }
                     } else if (robot.robotState == RobotState.FINDING_GOOD && robot.instructionsV2.isEmpty()) {
                         // 变更为前往泊位状态
                         robot.robotState = RobotState.GO_BERTH;
                     } else if (robot.robotState == RobotState.GO_BERTH) {
                         // 取出当前节点的路径信息
-                        PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+//                        PointMessageV2 message = mapMessage.getOrDefault(new MapNode(robot.x, robot.y), null);
+                        if (berths.get(RebalanceFloodFill.allocation[robot.id]).isClose){
+                            int minDist = Integer.MAX_VALUE;
+                            for(int j = 0; j< BERTH_NUM; j++){
+                                if (!berths.get(j).isClose){
+                                    PointMessageV2 message = singleMapMessage[j].getOrDefault(new MapNode(robot.x, robot.y), null);
+                                    if (message != null && message.DistToBerth < minDist){
+                                        minDist = message.DistToBerth;
+                                        RebalanceFloodFill.allocation[robot.id] = j;
+                                    }
+                                }
+                            }
+                        }
+                        PointMessageV2 message = singleMapMessage[RebalanceFloodFill.allocation[robot.id]].getOrDefault(new MapNode(robot.x, robot.y), null);
                         if (message == null) {
                             // 到达泊位 变更为空闲状态
 //                        Instruction.pullGood(i);
@@ -222,23 +328,22 @@ public class FinalOperator implements Operator {
                                     break;
                                 case RIGHT:
                                     robot.move(new Coord(robot.x, robot.y + 1), collision, map);
-//                                    Instruction.right(i);
                                     break;
                                 case DOWN:
                                     robot.move(new Coord(robot.x + 1, robot.y), collision, map);
-//                                    Instruction.down(i);
                                     break;
                                 case LEFT:
                                     robot.move(new Coord(robot.x, robot.y - 1), collision, map);
-//                                    Instruction.left(i);
                                     break;
                                 case PULL:
-                                    Instruction.pullGood(i);
+                                    if (robot.goods == 1) Instruction.pullGood(i);
                                     robot.instructionsV2.clear();
                                     berths.get(message.berthId).addGood(robot.price);
                                     robot.robotState = RobotState.BORING;
                                     break;
                             }
+                            // 再看一眼
+
                         }
                     }
                 } else {
@@ -255,7 +360,7 @@ public class FinalOperator implements Operator {
 
 
         }
-
+// ------------------------------------------------------------------------------------------------------------------------------
         // 2. 船指令
         for (int i = 0; i < boats.size(); i++) {
             Boat boat = boats.get(i);
@@ -297,21 +402,32 @@ public class FinalOperator implements Operator {
                                 }
 
                                 // 船满了，或者没时间了，去虚拟点
-                                if (boat.loadedGoodsNum >= boat.capacity - 5 || MAX_FRAME - this.currentFrameId <= berth.transportTime + 5) {
-                                    Instruction.go(i);
-                                    if (debug){
-                                        System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
-                                        for(int j = 0; j< BERTH_NUM; j++){
-                                            System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
-                                        }
+                                if (boat.loadedGoodsNum >= boat.capacity || MAX_FRAME - this.currentFrameId <= berth.transportTime + 1) {
+                                    if (MAX_FRAME - this.currentFrameId <= berth.transportTime + 1){
+                                        berth.isClose = true;
                                     }
+                                    Instruction.go(i);
                                     berth2Boat[x] = -1;
                                     boat2Berth[i] = -1;
                                     boat.state = 0;
                                 }
                                 // 泊位空了，去下一个泊位
                                 else if (berth.goodNums == 0) {
-                                    getTargetBerth(i, 1);
+                                    if(boat.loadedGoodsNum >= boat.capacity * MyConfig.goToMoney){
+                                        // 如果来不及去其他泊位了，就停在当前港口，直到最后一刻
+                                        if(MAX_FRAME - this.currentFrameId <= 500 + berth.transportTime){
+                                            break;
+                                        }
+                                        else{
+                                            Instruction.go(i);
+                                            berth2Boat[x] = -1;
+                                            boat2Berth[i] = -1;
+                                            boat.state = 0;
+                                        }
+
+                                    }else{
+                                        getTargetBerth(i, 1);
+                                    }
                                 }
                             }
                             break;
@@ -331,7 +447,7 @@ public class FinalOperator implements Operator {
     @Override
     public void run() {
         init();
-        interactBefore();
+//        interactBefore();
         String okk = in.nextLine();
         System.out.println("OK");
         System.out.flush();
@@ -378,7 +494,7 @@ public class FinalOperator implements Operator {
         // 4. 读取结束
         // 5. 先把机器人初始化了先
         for (int i = 0; i < ROBOT_NUM; i++) {
-            robots.add(new Robot(i, RobotState.BORING));
+            robots.add(new Robot(i, RobotState.GO_BERTH));
         }
         // 6. 先把船初始化了先
         for (int i = 0; i < BOAT_NUM; i++) {
@@ -387,16 +503,10 @@ public class FinalOperator implements Operator {
             boats.add(boat);
         }
         in.nextLine();
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initMapMessage() {
-        this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map,berths);
+        this.singleMapMessage = RebalanceFloodFill.getSinglePointMessage(map, berths);
         this.mapMessage = RebalanceFloodFill.getPointMessage(map, berths);
     }
 
@@ -418,11 +528,13 @@ public class FinalOperator implements Operator {
         for (int i = 0; i < k; i++) {
             Good good = new Good(in.nextInt(), in.nextInt(), in.nextInt());
             good.frameId = this.currentFrameId;
-            for(int z = 0 ; z < BERTH_NUM ;z ++){
+            for (int z = 0; z < BERTH_NUM; z++) {
                 PointMessageV2 message = singleMapMessage[z].getOrDefault(new MapNode(good.x, good.y), null);
                 if (message != null) {
                     good.costBenefitRatio[z] = (double) good.price / message.DistToBerth;
                     // disGoodList.get(message.berthId).add(good);
+                }else{
+                    good.costBenefitRatio[z] = -1;
                 }
             }
             allGoods.add(good);
@@ -478,45 +590,55 @@ public class FinalOperator implements Operator {
         Boat boat = boats.get(i);
 
         int max = 0;
+        int diff = Integer.MAX_VALUE;
         for (int j = 0; j < BERTH_NUM; j++) {
             Berth berth = berths.get(j);
-            if (berth2Boat[j] != -1 || berth.totalPrice < max) continue;
-            switch (situation){
+//            if (berth2Boat[j] != -1 || (berth.totalPrice < max )) continue;
+            if (berth2Boat[j] != -1) continue;
+            switch (situation) {
                 case 0:
+                    // 在虚拟点时，找最多的
+                    if (berth.totalPrice < max) continue;
                     // 优先找到一个能来回的泊位
-                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2 + 5){
+                    if (RebalanceFloodFill.areas[j] != 0 && MAX_FRAME - this.currentFrameId >= berth.transportTime * 2  + 1) {
                         max = berth.totalPrice;
                         target = berth.id;
                     }
                     break;
                 case 1:
-                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity - 10) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 5){
+                    // 在泊位时，找与capacity差距最小的
+                    if (Math.abs(boat.capacity - (berth.goodNums + boat.loadedGoodsNum)) > diff) continue;
+                    if ((berth.goodNums + boat.loadedGoodsNum >= boat.capacity * MyConfig.changeBerthCapacity) && MAX_FRAME - this.currentFrameId >= 500 + berth.transportTime + 1) {
                         max = berth.totalPrice;
                         target = berth.id;
+                        diff = Math.abs(boat.capacity - (berth.goodNums + boat.loadedGoodsNum));
                     }
                     break;
             }
         }
 
-        if (target == -1) {
-            if(boat2Berth[i] != -1)
-            {
-                if (MAX_FRAME - this.currentFrameId <= berths.get(boat2Berth[i]).transportTime * 2) return;
-                Instruction.go(i);
-                if (debug){
-                    System.out.printf("BoatID:%d  Boat LoadGoodNum:%d%n", i, boat.loadedGoodsNum);
-                    for(int j = 0; j< BERTH_NUM; j++){
-                        System.out.printf("BerthID:%d Berth GoodNum:%d Berth GoodPrice:%d %n",  j, berths.get(j).goodNums, berths.get(j).totalPrice);
-                    }
-                }
+
+        if (target == -1) return;
+
+        // 没时间了！赶紧送货！！！
+        /*if ((MAX_FRAME - this.currentFrameId <= 500 + berths.get(target).transportTime + 5) && (boat.loadedGoodsNum != 0)) {
+            Instruction.go(i);
+            if (boat2Berth[i] != -1) {
                 berth2Boat[boat2Berth[i]] = -1;
                 boat2Berth[i] = -1;
-                boat.state = 0;
             }
-
+            boats.get(i).state = 0;
             return;
-        }
+        }*/
 
+
+        // 最后一次移动时，关闭离开的泊位
+        Berth targetBerth = berths.get(target);
+        if (MAX_FRAME - this.currentFrameId < targetBerth.transportTime + 500 + Math.min(targetBerth.goodNums ,boat.capacity - boat.loadedGoodsNum) / targetBerth.loading_speed ){
+            if (boat2Berth[i] != -1) {
+               berths.get(boat2Berth[i]).isClose = true;
+            }
+        }
         // 前往该泊位
         Instruction.ship(i, target);
         // 修改状态
@@ -526,6 +648,7 @@ public class FinalOperator implements Operator {
         berth2Boat[target] = i;
         boat2Berth[i] = target;
         boats.get(i).state = 1;
+
 
     }
 }

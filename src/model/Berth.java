@@ -28,12 +28,17 @@ public class Berth {
     /**
      * 该泊位价值队列
      */
-    public Queue<Integer> goodPrice = new ArrayDeque<>();;
+    public Queue<Integer> goodPrice = new ArrayDeque<>();
 
     /**
      * 总价值
      */
     public int totalPrice;
+
+    /**
+     * 是否关闭
+     */
+    public boolean isClose = false;
 
     public Berth() {
     }
